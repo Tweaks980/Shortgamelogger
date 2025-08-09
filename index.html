@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Short Game Logger — v10</title>
+<style>
+body{font-family:-apple-system,system-ui,Segoe UI,Roboto,Arial,sans-serif;background:#111;color:#eee;margin:0}
+header{background:#222;padding:10px;position:sticky;top:0;display:flex;gap:6px;flex-wrap:wrap;z-index:10}
+.card{background:#1a1a1a;margin:10px;border-radius:10px;padding:12px}
+button{cursor:pointer;border:none;border-radius:10px;padding:10px 12px;font-size:16px}
+.btn{background:#333;color:#fff}.btn-sm{font-size:14px;padding:6px 10px}
+.btn-accent{background:#2d6a4f}.btn-danger{background:#8b0000}
+.chip{display:inline-block;background:#333;padding:10px;margin:4px;border-radius:8px;cursor:pointer}
+.chip.active{background:#2d6a4f}
+.row{display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+.center{display:flex;gap:10px;align-items:center;justify-content:center}
+.nbox{background:#333;border-radius:10px;min-width:64px;min-height:56px;display:flex;align-items:center;justify-content:center;font-size:22px;padding:0 14px}
+label{display:block;font-size:13px;color:#aaa;margin-bottom:6px}
+table{width:100%;border-collapse:collapse;margin-top:8px}
+th,td{border-bottom:1px solid #333;padding:6px;text-align:center}
+.hint{font-size:12px;color:#aaa}
+.hidden{display:none}
+#exportPanel{position:fixed;left:0;right:0;bottom:0;background:#1a1a1a;border-top:1px solid #333;padding:12px;display:none;z-index:20}
+#exportPanel .row{justify-content:flex-end}
+</style>
+</head>
+<body>
+
+<header>
+  <button id="exportBtn" class="btn-sm btn">Export</button>
+  <button id="todayBtn" class="btn-sm btn">Today</button>
+  <button id="clearAll" class="btn-sm btn-danger">Clear</button>
+</header>
+
+<section class="card">
+  <div class="row">
+    <div>
+      <label>Hole</label>
+      <div class="center">
+        <button class="btn step" data-target="hole" data-step="-1">-</button>
+        <div id="hole" class="nbox" data-value="1">1</div>
+        <button class="btn step" data-target="hole" data-step="1">+</button>
+      </div>
+    </div>
+    <div>
+      <label>Date</label>
+      <div id="date" class="nbox">--</div>
+    </div>
+  </div>
+</section>
+
+<section class="card">
+  <label>Lie</label>
+  <div id="lieSeg">
+    <div class="chip" data-lie="Fringe">Fringe</div>
+    <div class="chip" data-lie="Rough">Rough</div>
+    <div class="chip" data-lie="Fairway">Fairway</div>
+    <div class="chip" data-lie="Green">Green</div>
+    <div class="chip" data-lie="Recovery">Recovery</div>
+  </div>
+</section>
+
+<section class="card">
+  <label id="distLabel">Distance (yds)</label>
+  <div id="distSeg">
+    <div class="chip" data-dist="10">10</div><div class="chip" data-dist="15">15</div><div class="chip" data-dist="20">20</div>
+    <div class="chip" data-dist="25">25</div><div class="chip" data-dist="30">30</div><div class="chip" data-dist="35">35</div>
+    <div class="chip" data-dist="40">40</div><div class="chip" data-dist="45">45</div><div class="chip" data-dist="50">50</div>
+  </div>
+  <div class="center" style="margin-top:8px;">
+    <button class="btn step" data-target="dist" data-step="-1">-</button>
+    <div id="dist" class="nbox" data-value="15">15</div>
+    <button class="btn step" data-target="dist" data-step="1">+</button>
+  </div>
+  <div class="hint" id="puttHint" style="display:none;">Green selected: interpreting distance as <b>putt distance</b> in yards.</div>
+</section>
+
+<div class="center"><button id="toggleR1" class="btn btn-sm">+Putt 1</button></div>
+<section class="card hidden" id="r1Card">
+  <label>Putt 1 (ft) <span class="hint">+ long, − short, 0 = Holed</span></label>
+  <div id="r1Seg">
+    <div class="chip" data-r1="-12">-12</div><div class="chip" data-r1="-9">-9</div><div class="chip" data-r1="-6">-6</div><div class="chip" data-r1="-3">-3</div>
+    <div class="chip" data-r1="0">0</div><div class="chip" data-r1="3">+3</div><div class="chip" data-r1="6">+6</div><div class="chip" data-r1="9">+9</div><div class="chip" data-r1="12">+12</div>
+  </div>
+  <div class="center" style="margin-top:8px;">
+    <button class="btn step" data-target="r1" data-step="-1">-</button>
+    <div id="r1" class="nbox" data-value="0">0</div>
+    <button class="btn step" data-target="r1" data-step="1">+</button>
+  </div>
+</section>
+
+<div class="center"><button id="toggleR2" class="btn btn-sm">+Putt 2</button></div>
+<section class="card hidden" id="r2Card">
+  <label>Putt 2 (ft) <span class="hint">0 = Holed</span></label>
+  <div id="r2Seg">
+    <div class="chip" data-r2="-12">-12</div><div class="chip" data-r2="-9">-9</div><div class="chip" data-r2="-6">-6</div><div class="chip" data-r2="-3">-3</div>
+    <div class="chip" data-r2="0">0</div><div class="chip" data-r2="3">+3</div><div class="chip" data-r2="6">+6</div><div class="chip" data-r2="9">+9</div><div class="chip" data-r2="12">+12</div>
+  </div>
+  <div class="center" style="margin-top:8px;">
+    <button class="btn step" data-target="r2" data-step="-1">-</button>
+    <div id="r2" class="nbox" data-value="0">0</div>
+    <button class="btn step" data-target="r2" data-step="1">+</button>
+  </div>
+</section>
+
+<div class="center"><button id="toggleR3" class="btn btn-sm">+Putt 3</button></div>
+<section class="card hidden" id="r3Card">
+  <label>Putt 3 (ft) <span class="hint">0 = Holed</span></label>
+  <div id="r3Seg">
+    <div class="chip" data-r3="-12">-12</div><div class="chip" data-r3="-9">-9</div><div class="chip" data-r3="-6">-6</div><div class="chip" data-r3="-3">-3</div>
+    <div class="chip" data-r3="0">0</div><div class="chip" data-r3="3">+3</div><div class="chip" data-r3="6">+6</div><div class="chip" data-r3="9">+9</div><div class="chip" data-r3="12">+12</div>
+  </div>
+  <div class="center" style="margin-top:8px;">
+    <button class="btn step" data-target="r3" data-step="-1">-</button>
+    <div id="r3" class="nbox" data-value="0">0</div>
+    <button class="btn step" data-target="r3" data-step="1">+</button>
+  </div>
+</section>
+
+<section class="card">
+  <label>Score (Par 2)</label>
+  <div class="center">
+    <button class="btn step" data-target="score" data-step="-1">-</button>
+    <div id="score" class="nbox" data-value="2">2</div>
+    <button class="btn step" data-target="score" data-step="1">+</button>
+  </div>
+  <div class="center" style="margin-top:10px;">
+    <button id="saveBtn" class="btn btn-accent" style="flex:1">Save Hole</button>
+    <button id="undoBtn" class="btn">Undo</button>
+  </div>
+</section>
+
+<section class="card">
+  <div id="summary">Par: 0 | Total: 0 | Chip-ins: 0</div>
+  <table id="logTable">
+    <thead><tr><th>#</th><th>Date</th><th>Lie</th><th>Dist</th><th>Putt 1</th><th>Putt 2</th><th>Putt 3</th><th>Score</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</section>
+
+<!-- Export panel -->
+<div id="exportPanel">
+  <div class="row">
+    <div>
+      <button id="doShare" class="btn btn-sm">Share/Send</button>
+      <button id="doDownload" class="btn btn-sm">Download</button>
+      <button id="doView" class="btn btn-sm">View</button>
+      <button id="closeExport" class="btn btn-sm btn-danger">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const KEY='sg_log_vFinal10';
+const $=s=>document.querySelector(s);
+const $$=s=>Array.from(document.querySelectorAll(s));
+const today=()=>new Date().toISOString().slice(0,10);
+const load=()=>JSON.parse(localStorage.getItem(KEY)||'[]');
+const save=d=>localStorage.setItem(KEY,JSON.stringify(d));
+
+function setVal(id,v){const el=$(id); el.dataset.value=v; el.textContent=String(v);}
+function getVal(id){return parseInt($(id).dataset.value||'0',10);}
+
+function stepperBind(){
+  $$('.step').forEach(b=>b.addEventListener('click',()=>{
+    const t='#'+b.dataset.target; let v=getVal(t)+parseInt(b.dataset.step,10);
+    if(t==='#hole') v=Math.min(18,Math.max(1,v));
+    if(t==='#score') v=Math.min(6,Math.max(1,v));
+    setVal(t,v);
+  }));
+}
+
+function chipBind(container, attr, targetId){
+  $(container).addEventListener('click', e=>{
+    const chip=e.target.closest('.chip'); if(!chip||!chip.dataset[attr]) return;
+    $$(container+' .chip').forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+    if(targetId){ setVal('#'+targetId, parseInt(chip.dataset[attr],10)); }
+  });
+}
+
+function lieBind(){
+  const cont='#lieSeg';
+  $(cont).addEventListener('click', e=>{
+    const chip=e.target.closest('.chip'); if(!chip||!chip.dataset.lie) return;
+    $$(cont+' .chip').forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+    const isGreen = chip.dataset.lie.toLowerCase()==='green';
+    $('#distLabel').textContent = isGreen ? 'Putt Distance (yds)' : 'Distance (yds)';
+    $('#puttHint').style.display = isGreen ? 'block' : 'none';
+  });
+}
+
+function render(){
+  const data=load();
+  const tbody=$('#logTable tbody'); tbody.innerHTML='';
+  let par=0,total=0,chipIns=0;
+  data.forEach(r=>{
+    par+=2; total+=r.score; if(r.r1===0) chipIns++;
+    const tr=document.createElement('tr');
+    const dispDist = r.dist!=='' && r.dist!==undefined ? (r.dist + ' yd') : '';
+    const dispR = v => (v===0 ? 'Holed' : (v===''||v===undefined ? '' : (v + ' ft')));
+    tr.innerHTML=`<td>${r.hole}</td><td>${r.date}</td><td>${r.lie}</td><td>${dispDist}</td>
+                  <td>${dispR(r.r1)}</td><td>${dispR(r.r2)}</td><td>${dispR(r.r3)}</td><td>${r.score}</td>`;
+    tbody.appendChild(tr);
+  });
+  $('#summary').textContent=`Par: ${par} | Total: ${total} | Chip-ins: ${chipIns}`;
+}
+
+function saveHole(){
+  const lieChip = $('#lieSeg .chip.active');
+  const row={
+    hole:getVal('#hole'),
+    date:$('#date').textContent||today(),
+    lie: lieChip ? lieChip.dataset.lie : '',
+    dist:getVal('#dist'),
+    r1: $('#r1Card').classList.contains('hidden') ? '' : getVal('#r1'),
+    r2: $('#r2Card').classList.contains('hidden') ? '' : getVal('#r2'),
+    r3: $('#r3Card').classList.contains('hidden') ? '' : getVal('#r3'),
+    score:getVal('#score')
+  };
+  const d=load(); d.push(row); save(d); render();
+  setVal('#hole', Math.min(row.hole+1,18));
+}
+
+function undo(){
+  const d=load(); if(!d.length) return; d.pop(); save(d); render();
+}
+
+// CSV (Rows only) - headers include units, values are raw numbers
+function csvRows(){
+  const d=load();
+  const headers=['hole','date','lie','dist (yd)','Putt 1 (ft)','Putt 2 (ft)','Putt 3 (ft)','score'];
+  const lines=[headers.join(',')];
+  d.forEach(r=>{
+    const vals=[r.hole, r.date, r.lie, r.dist, r.r1, r.r2, r.r3, r.score];
+    lines.push(vals.map(v=> (v===undefined? '' : v)).join(','));
+  });
+  return '\ufeff'+lines.join('\r\n'); // BOM + CRLF
+}
+
+function makeBlob(csv){ return new Blob([csv],{type:'text/csv;charset=utf-8;'}); }
+function download(name,csv){ const a=document.createElement('a'); a.href=URL.createObjectURL(makeBlob(csv)); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1500); }
+function view(csv){ const url=URL.createObjectURL(makeBlob(csv)); window.open(url, '_blank'); }
+
+async function share(name,csv){
+  try{
+    const file = new File([makeBlob(csv)], name, {type:'text/csv'});
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({files:[file], title:name, text:'CSV attached.'});
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
+
+// Export panel logic
+function openExport(){ $('#exportPanel').style.display='block'; }
+function closeExport(){ $('#exportPanel').style.display='none'; }
+
+function initExport(){
+  $('#exportBtn').addEventListener('click', openExport);
+  $('#closeExport').addEventListener('click', closeExport);
+  $('#doDownload').addEventListener('click', ()=>{ const csv=csvRows(); download('short_game_rows.csv', csv); });
+  $('#doView').addEventListener('click', ()=>{ const csv=csvRows(); view(csv); });
+  $('#doShare').addEventListener('click', async ()=>{
+    const csv=csvRows(); const name='short_game_rows.csv';
+    const ok = await share(name,csv);
+    if(!ok){
+      const subject = encodeURIComponent('Short Game Log CSV');
+      const body = encodeURIComponent(csv);
+      window.location.href = `mailto:?subject=${subject}&body=${body}`;
+    }
+  });
+}
+
+function init(){
+  $('#date').textContent=today();
+  stepperBind();
+  lieBind();
+  chipBind('#distSeg','dist','dist');
+  chipBind('#r1Seg','r1','r1');
+  chipBind('#r2Seg','r2','r2');
+  chipBind('#r3Seg','r3','r3');
+  $('#toggleR1').addEventListener('click',()=>{
+    const c=$('#r1Card'); const hidden=c.classList.toggle('hidden');
+    $('#toggleR1').textContent=hidden?'+Putt 1':'Hide Putt 1';
+  });
+  $('#toggleR2').addEventListener('click',()=>{
+    const c=$('#r2Card'); const hidden=c.classList.toggle('hidden');
+    $('#toggleR2').textContent=hidden?'+Putt 2':'Hide Putt 2';
+  });
+  $('#toggleR3').addEventListener('click',()=>{
+    const c=$('#r3Card'); const hidden=c.classList.toggle('hidden');
+    $('#toggleR3').textContent=hidden?'+Putt 3':'Hide Putt 3';
+  });
+  $('#saveBtn').addEventListener('click',saveHole);
+  $('#undoBtn').addEventListener('click',undo);
+  $('#todayBtn').addEventListener('click',()=>$('#date').textContent=today());
+  $('#clearAll').addEventListener('click',()=>{ if(confirm('Clear all logs?')){ localStorage.removeItem(KEY); render(); }});
+  initExport();
+  render();
+}
+init();
+</script>
+
+</body>
+</html>
