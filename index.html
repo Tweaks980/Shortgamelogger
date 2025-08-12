@@ -57,6 +57,11 @@
   .tight th,.tight td{padding:8px}
   .hidden{display:none}
 
+  /* Segmented toggle */
+  .seg {display:inline-flex; border:1px solid var(--border); border-radius:10px; overflow:hidden}
+  .seg button{background:var(--panel-2); color:var(--text); padding:6px 10px; border:none; cursor:pointer}
+  .seg button.active{background:var(--btn-active)}
+
   /* Dispersion + legend */
   canvas{display:block; width:100%; height:auto; max-width:380px; border-radius:10px; background:#101419}
   .legend { margin-top:8px; display:flex; gap:8px; flex-wrap:wrap }
@@ -65,6 +70,9 @@
   .lg-rough   { color:#ffa74d; border-color:#6f5131 }
   .lg-green   { color:#5ee0ff; border-color:#2b4c57 }
   .lg-recovery{ color:#ff5a5a; border-color:#633138 }
+  .lg-d1 { color:#9cdcfe; border-color:#395268 }    /* 10–25 yd */
+  .lg-d2 { color:#a6e22e; border-color:#3b5b2b }    /* 30–45 yd */
+  .lg-d3 { color:#ffb454; border-color:#6a4c22 }    /* 50–65 yd */
 </style>
 </head>
 <body>
@@ -209,15 +217,18 @@
     </table>
   </section>
 
-  <!-- Session dispersion chart -->
+  <!-- Session dispersion chart with Color toggle -->
   <section class="panel">
-    <h2>Session Dispersion (ft)</h2>
+    <h2 style="display:flex;justify-content:space-between;align-items:center;">
+      <span>Session Dispersion (ft)</span>
+      <span class="seg" id="colorModeSeg">
+        <button data-mode="lie" class="active">Lie</button>
+        <button data-mode="distance">Distance</button>
+      </span>
+    </h2>
     <canvas id="chipChart" width="380" height="280"></canvas>
     <div class="legend subtle" id="chipLegend">
-      <span class="lg lg-fairway">Fairway</span>
-      <span class="lg lg-rough">Rough</span>
-      <span class="lg lg-green">Green</span>
-      <span class="lg lg-recovery">Recovery</span>
+      <!-- legend will be filled by JS -->
     </div>
     <div class="subtle" style="margin-top:6px;">x = Left(−) / Right(+), y = Short(−) / Long(+)</div>
   </section>
@@ -231,6 +242,7 @@
   let selectedDist = null;
   let selectedLie  = "";        // start with no lie selected
   let saved = [];               // saved rows
+  let colorMode = "lie";        // "lie" | "distance"
 
   // Hole/date
   const holeInput = document.getElementById("hole");
@@ -391,7 +403,8 @@
     document.getElementById("summaryBar").textContent =
       `Par: ${par} | Total: ${total} | Chip-ins: ${chipIns} | Over Par: ${overLabel}`;
 
-    // Chart
+    // Chart + legend
+    renderLegend();
     renderChart();
   }
 
@@ -482,7 +495,56 @@
     renderLog();
   });
 
-  // ===== Dispersion chart (session only, color by Lie) =====
+  // ===== Color mode toggle (Lie / Distance) =====
+  document.querySelectorAll('#colorModeSeg button').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      document.querySelectorAll('#colorModeSeg button').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      colorMode = b.dataset.mode;   // "lie" | "distance"
+      renderLegend();
+      renderChart();
+    });
+  });
+
+  function renderLegend(){
+    const lg = document.getElementById('chipLegend');
+    if (colorMode === 'lie'){
+      lg.innerHTML = `
+        <span class="lg lg-fairway">Fairway</span>
+        <span class="lg lg-rough">Rough</span>
+        <span class="lg lg-green">Green</span>
+        <span class="lg lg-recovery">Recovery</span>`;
+    } else {
+      lg.innerHTML = `
+        <span class="lg lg-d1">10–25 yd</span>
+        <span class="lg lg-d2">30–45 yd</span>
+        <span class="lg lg-d3">50–65 yd</span>`;
+    }
+  }
+
+  function bucketForDistance(d){
+    d = Number(d)||0;
+    if (d>=10 && d<=25) return 'd1';
+    if (d>=30 && d<=45) return 'd2';
+    if (d>=50 && d<=65) return 'd3';
+    return 'd1'; // default
+  }
+  function colorFor(row){
+    if (colorMode === 'lie'){
+      switch((row.lie||"").toLowerCase()){
+        case "fairway":  return "#7CFC00";
+        case "rough":    return "#ffa74d";
+        case "green":    return "#5ee0ff";
+        case "recovery": return "#ff5a5a";
+        default:         return "#e8ecf1";
+      }
+    } else {
+      const b = bucketForDistance(row.dist);
+      return (b==='d1') ? "#9cdcfe" : (b==='d2') ? "#a6e22e" : "#ffb454";
+    }
+  }
+
+  // ===== Dispersion chart (session only) =====
   function renderChart(){
     const cv = document.getElementById('chipChart');
     if (!cv) return;
@@ -490,21 +552,10 @@
     const W = cv.width, H = cv.height;
     ctx.clearRect(0,0,W,H);
 
-    // lie → color mapping
-    const colorForLie = (lie)=>{
-      switch((lie||"").toLowerCase()){
-        case "fairway":  return "#7CFC00";
-        case "rough":    return "#ffa74d";
-        case "green":    return "#5ee0ff";
-        case "recovery": return "#ff5a5a";
-        default:         return "#e8ecf1";
-      }
-    };
-
     // collect points
     const pts = saved
       .filter(r => r.chipX !== undefined && r.chipY !== undefined)
-      .map(r => ({x:r.chipX, y:r.chipY, c:colorForLie(r.lie)}));
+      .map(r => ({x:r.chipX, y:r.chipY, c:colorFor(r)}));
 
     // scale (at least ±5ft)
     const maxAbs = Math.max(5, ...pts.map(p => Math.max(Math.abs(p.x), Math.abs(p.y))), 5);
@@ -551,6 +602,7 @@
   document.querySelectorAll("#lieChips .pill").forEach(x=>x.classList.remove("active"));
   document.getElementById("sectionP1").classList.add("hidden");
   document.getElementById("sectionP23").classList.add("hidden");
+  renderLegend();
   calcAll();
   renderLog();
 </script>
