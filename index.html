@@ -3,49 +3,47 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Chipping App</title>
+<title>Par2</title>
 <style>
-  :root {
-    --bg:#0f1115; --panel:#1a1f24; --panel-2:#11161b; --text:#e8ecf1;
+  :root { --bg:#0f1115; --panel:#1a1f24; --panel-2:#11161b; --text:#e8ecf1;
     --muted:#9aa7b2; --accent:#2ea043; --btn:#2b3138; --btn-active:#355043;
-    --border:#2a3138; --radius:14px;
-  }
+    --border:#2a3138; --radius:14px; }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--text);
-       font-family:-apple-system,BlinkMacSystemFont,Inter,Arial,sans-serif}
+    font-family:-apple-system,BlinkMacSystemFont,Inter,Arial,sans-serif}
   .wrap{max-width:420px;margin:0 auto;padding:12px}
   header{display:flex;gap:8px;padding:10px;border-bottom:1px solid var(--border);
-         position:sticky;top:0;background:rgba(15,17,21,.95);backdrop-filter:blur(8px);z-index:4}
+    position:sticky;top:0;background:rgba(15,17,21,.95);backdrop-filter:blur(8px);z-index:4}
   .btn{background:var(--btn);color:var(--text);border:1px solid var(--border);
-       padding:8px 12px;border-radius:10px;cursor:pointer}
+    padding:8px 12px;border-radius:10px;cursor:pointer}
   .save{background:var(--accent);border:none;color:#08130a;font-weight:700}
   h2{margin:0 0 8px 0;font-size:14px;color:var(--muted);font-weight:600}
   .panel{background:var(--panel);padding:12px;margin:10px 0;border-radius:var(--radius);
-         border:1px solid var(--border)}
+    border:1px solid var(--border)}
   .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .field{display:grid;gap:6px}
   .input,.counter,.pill{background:var(--panel-2);border:1px solid var(--border);border-radius:12px;
-       padding:10px 12px;color:var(--text);display:inline-flex;align-items:center;justify-content:center}
+    padding:10px 12px;color:var(--text);display:inline-flex;align-items:center;justify-content:center}
   .input input{background:transparent;border:none;outline:none;color:var(--text);width:100%;font-size:16px}
   .counter{gap:8px}
   .counter button{width:36px;height:36px;background:var(--btn);color:var(--text);
-       border:1px solid var(--border);border-radius:10px}
+    border:1px solid var(--border);border-radius:10px}
   .chips{display:flex;gap:8px;flex-wrap:wrap}
   .pill{padding:10px 12px;border-radius:10px;cursor:pointer}
   .pill.active{outline:2px solid var(--accent)}
   #distanceGrid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
   #distanceGrid button{background:var(--btn);color:var(--text);border:1px solid var(--border);
-       padding:6px;border-radius:9px;min-height:34px;font-size:13px}
+    padding:6px;border-radius:9px;min-height:34px;font-size:13px}
   #distanceGrid button.active{background:var(--btn-active);border-color:#3f6f5d}
   .stack{display:grid;gap:8px}
   .subtle{color:var(--muted);font-size:12px}
   .pad{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center}
   .pad .options{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
   .pad .options button{background:var(--btn);color:var(--text);border:1px solid var(--border);
-       padding:8px 10px;border-radius:10px;cursor:pointer}
+    padding:8px 10px;border-radius:10px;cursor:pointer}
   .pad .options button.active{background:var(--btn-active);border-color:#3f6f5d}
 
-  /* Footer buttons: Save left (bigger), Undo right (smaller) */
+  /* Footer buttons */
   .footer{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center}
   .footer .save {padding:12px 18px; font-size:16px; border-radius:12px; min-width:130px;}
   .footer .undo {padding:8px 12px; font-size:13px; border-radius:10px; opacity:.95;}
@@ -62,17 +60,18 @@
   .seg button{background:var(--panel-2); color:var(--text); padding:6px 10px; border:none; cursor:pointer}
   .seg button.active{background:var(--btn-active)}
 
-  /* Dispersion + legend */
+  /* Dispersion + filter row (legend + filter in one) */
   canvas{display:block; width:100%; height:auto; max-width:380px; border-radius:10px; background:#101419}
-  .legend { margin-top:8px; display:flex; gap:8px; flex-wrap:wrap }
-  .lg { padding:4px 8px; border-radius:10px; border:1px solid var(--border) }
-  .lg-fairway { color:#7CFC00; border-color:#375b37 }
-  .lg-rough   { color:#ffa74d; border-color:#6f5131 }
-  .lg-green   { color:#5ee0ff; border-color:#2b4c57 }
-  .lg-recovery{ color:#ff5a5a; border-color:#633138 }
-  .lg-d1 { color:#9cdcfe; border-color:#395268 }    /* 10–25 yd */
-  .lg-d2 { color:#a6e22e; border-color:#3b5b2b }    /* 30–45 yd */
-  .lg-d3 { color:#ffb454; border-color:#6a4c22 }    /* 50–65 yd */
+  .filterbar { margin-top:8px; display:flex; gap:8px; flex-wrap:wrap }
+  .flt { padding:4px 8px; border-radius:10px; border:1px solid var(--border); user-select:none; cursor:pointer }
+  .flt.off { filter: grayscale(1); opacity:.45; }
+  .flt-fairway { color:#7CFC00; border-color:#375b37 }
+  .flt-rough   { color:#ffa74d; border-color:#6f5131 }
+  .flt-green   { color:#5ee0ff; border-color:#2b4c57 }
+  .flt-recovery{ color:#ff5a5a; border-color:#633138 }
+  .flt-d1 { color:#9cdcfe; border-color:#395268 }    /* 10–25 yd */
+  .flt-d2 { color:#a6e22e; border-color:#3b5b2b }    /* 30–45 yd */
+  .flt-d3 { color:#ffb454; border-color:#6a4c22 }    /* 50–65 yd */
 </style>
 </head>
 <body>
@@ -82,7 +81,7 @@
   <button class="btn" id="clearBtn">Clear</button>
 </header>
 
-<main class="wrap">
+<main class="wrap" id="topOfApp">
   <section class="panel">
     <div class="row">
       <div class="field">
@@ -200,7 +199,7 @@
   <!-- Summary -->
   <section class="panel">
     <div id="summaryBar" style="font-weight:600;">
-      Par: 0 | Total: 0 | Chip-ins: 0 | Over Par: 0
+      Par: 0 | Total: 0 | Up/Down %: 0% | Over Par: 0
     </div>
   </section>
 
@@ -217,7 +216,7 @@
     </table>
   </section>
 
-  <!-- Session dispersion chart with Color toggle -->
+  <!-- Session dispersion chart + color toggle + SINGLE dynamic filter row -->
   <section class="panel">
     <h2 style="display:flex;justify-content:space-between;align-items:center;">
       <span>Session Dispersion (ft)</span>
@@ -227,22 +226,21 @@
       </span>
     </h2>
     <canvas id="chipChart" width="380" height="280"></canvas>
-    <div class="legend subtle" id="chipLegend">
-      <!-- legend will be filled by JS -->
-    </div>
+    <div class="filterbar subtle" id="dynFilterRow"></div>
     <div class="subtle" style="margin-top:6px;">x = Left(−) / Right(+), y = Short(−) / Long(+)</div>
   </section>
 </main>
 
 <script>
-  // ===== Helpers =====
   const r0 = (n) => Math.round(Number(n) || 0);
 
-  // ===== State =====
-  let selectedDist = null;
-  let selectedLie  = "";        // start with no lie selected
-  let saved = [];               // saved rows
-  let colorMode = "lie";        // "lie" | "distance"
+  let selectedDist = null, selectedLie = "", saved = [];
+  let colorMode = "lie";                        // "lie" | "distance"
+  const activeCats = {                          // active filters for both modes
+    Fairway:true, Rough:true, Green:true, Recovery:true,
+    d1:true, d2:true, d3:true
+  };
+  const includeChipInsInUpDown = true;
 
   // Hole/date
   const holeInput = document.getElementById("hole");
@@ -271,7 +269,6 @@
     });
   });
 
-  // Pads
   let chipDepth="exact", chipLine="straight", p1Depth="exact", p1Line="straight";
   function setActive(groupSel, attr, value){
     document.querySelectorAll(groupSel+" button["+attr+"]")
@@ -282,7 +279,6 @@
   document.querySelectorAll("#depthOptionsP1 button[data-depth]").forEach(b=>b.onclick=()=>{ p1Depth=b.dataset.depth; setActive("#depthOptionsP1","data-depth",p1Depth); calcAll(); });
   document.querySelectorAll("#lineOptionsP1 button[data-line]").forEach(b=>b.onclick=()=>{ p1Line=b.dataset.line; setActive("#lineOptionsP1","data-line",p1Line); calcAll(); });
 
-  // Inputs
   const depthFtChip = document.getElementById("depthFtChip");
   const lineFtChip  = document.getElementById("lineFtChip");
   const putt1Dist   = document.getElementById("putt1Dist");
@@ -322,40 +318,28 @@
   }
 
   function calcAll(){
-    // Chip derived leave
     const chip = leaveFromPad(chipDepth, chipLine, depthFtChip.value, lineFtChip.value);
     derivedChip.textContent = chip.leave>0
       ? `Derived leave: ${chip.leave} ft (${chip.depthDir} ${Math.abs(chip.dSigned)} / ${chip.lineDir} ${Math.abs(chip.lSigned)})`
       : "Derived leave: —";
-
-    // P1 ALWAYS mirrors chip leave (blank if chip-in)
     putt1Dist.value = chip.leave > 0 ? chip.leave : "";
 
-    // P1 derived leave
     const p1leave = leaveFromPad(p1Depth, p1Line, depthFtP1.value, lineFtP1.value);
     derivedP1.textContent = (depthFtP1.value || lineFtP1.value)
       ? `Derived leave after P1: ${p1leave.leave} ft (${p1leave.depthDir} ${Math.abs(p1leave.dSigned)} / ${p1leave.lineDir} ${Math.abs(p1leave.lSigned)})`
       : "Derived leave after P1: —";
 
-    // P2 mirrors P1 leave only if P1 existed
-    if (r0(putt1Dist.value) > 0) {
-      p2.value = p1leave.leave > 0 ? p1leave.leave : "";
-    } else {
-      p2.value = "";
-    }
+    if (r0(putt1Dist.value) > 0) { p2.value = p1leave.leave > 0 ? p1leave.leave : ""; } else { p2.value = ""; }
 
-    // Auto-score
     const offGreen = (selectedLie !== "Green");
-    let strokes = offGreen ? 1 : 0;  // chip stroke if off-green
-    let putts = 0;
+    let strokes = offGreen ? 1 : 0, putts = 0;
     if (r0(putt1Dist.value) > 0) putts++;
     if (r0(p2.value) > 0) putts++;
     if (r0(p3.value) > 0) putts++;
     strokes += putts;
-    if (offGreen && chip.leave===0 && putts===0) strokes = 1; // chip-in
+    if (offGreen && chip.leave===0 && putts===0) strokes = 1;
     scoreEl.textContent = (!selectedDist || !selectedLie) ? "—" : strokes;
 
-    // Section visibility
     if (chip.leave>0) document.getElementById("sectionP1").classList.remove("hidden");
     maybeShowP1();
   }
@@ -374,18 +358,13 @@
     derivedP1.textContent = "Derived leave after P1: —";
   }
 
-  // ===== Save / Undo / Export / Clear =====
   function renderLog(){
     const tbody = document.getElementById("logBody");
     tbody.innerHTML = "";
-    // append in order (new rows at bottom)
     saved.forEach(r=>{
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>${r.hole}</td>
-        <td>${r.date}</td>
-        <td>${r.lie}</td>
-        <td>${r.dist} yd</td>
+        <td>${r.hole}</td><td>${r.date}</td><td>${r.lie}</td><td>${r.dist} yd</td>
         <td>${r.p1 || ""}${r.p1? " ft": ""}</td>
         <td>${r.p2 || ""}${r.p2? " ft": ""}</td>
         <td>${r.p3 || ""}${r.p3? " ft": ""}</td>
@@ -393,18 +372,18 @@
       tbody.appendChild(tr);
     });
 
-    // Summary
     const holes = saved.length;
     const par   = holes * 2;
     const total = saved.reduce((s,r)=>s + (Number(r.score)||0), 0);
-    const chipIns = saved.filter(r => (r.lie !== "Green") && Number(r.chipLeave) === 0).length;
+    const attempts = saved.filter(r => (r.lie !== "Green")).length;
+    const successes = saved.filter(r => (r.lie !== "Green") && (includeChipInsInUpDown ? r.score <= 2 : r.score === 2)).length;
+    const updownPct = attempts ? Math.round((successes/attempts)*100) : 0;
     const over = total - par;
     const overLabel = over > 0 ? `+${over}` : `${over}`;
     document.getElementById("summaryBar").textContent =
-      `Par: ${par} | Total: ${total} | Chip-ins: ${chipIns} | Over Par: ${overLabel}`;
+      `Par: ${par} | Total: ${total} | Up/Down %: ${updownPct}% | Over Par: ${overLabel}`;
 
-    // Chart + legend
-    renderLegend();
+    renderFilterRow();
     renderChart();
   }
 
@@ -415,10 +394,8 @@
     const chip = leaveFromPad(chipDepth || "exact", chipLine || "straight", depthFtChip.value, lineFtChip.value);
     const p1   = leaveFromPad(p1Depth   || "exact", p1Line   || "straight", depthFtP1.value,  lineFtP1.value);
 
-    // score
     const offGreen = (selectedLie !== "Green");
-    let strokes = offGreen ? 1 : 0;
-    let putts = 0;
+    let strokes = offGreen ? 1 : 0, putts = 0;
     const p1d = r0(putt1Dist.value); if (p1d>0) putts++;
     const p2d = r0(p2.value);       if (p2d>0) putts++;
     const p3d = r0(p3.value);       if (p3d>0) putts++;
@@ -427,35 +404,22 @@
 
     const row = {
       hole, date, lie: selectedLie || "", dist: selectedDist ?? "",
-      // analytics for CSV
-      chipLeave: chip.leave,
-      chipDepthSigned: chip.dSigned,
-      chipLateralSigned: chip.lSigned,
-      chipDepthDir: chip.depthDir,
-      chipLineDir: chip.lineDir,
-      // x/y for chart (session only)
-      chipX: chip.lSigned,   // left/right (x)
-      chipY: chip.dSigned,   // short/long (y)
-      p1: p1d || "",
-      p1DepthSigned: p1.dSigned || "",
-      p1LateralSigned: p1.lSigned || "",
-      p1DepthDir: p1.depthDir || "",
-      p1LineDir: p1.lineDir || "",
-      p2: p2d || "",
-      p3: p3d || "",
-      score: strokes
+      chipLeave: chip.leave, chipDepthSigned: chip.dSigned, chipLateralSigned: chip.lSigned,
+      chipDepthDir: chip.depthDir, chipLineDir: chip.lineDir,
+      chipX: chip.lSigned, chipY: chip.dSigned,
+      p1: p1d || "", p1DepthSigned: p1.dSigned || "", p1LateralSigned: p1.lSigned || "",
+      p1DepthDir: p1.depthDir || "", p1LineDir: p1.lineDir || "",
+      p2: p2d || "", p3: p3d || "", score: strokes
     };
     saved.push(row);
     renderLog();
 
-    // Reset for next hole
+    // Reset + scroll top
     holeInput.value = hole + 1;
     document.querySelectorAll("#distanceGrid button").forEach(b=>b.classList.remove("active")); selectedDist=null;
     document.querySelectorAll("#lieChips .pill").forEach(x=>x.classList.remove("active")); selectedLie = "";
-    depthFtChip.value=""; lineFtChip.value="";
-    clearActivePills();
-    hidePuttSections();
-    calcAll();
+    depthFtChip.value=""; lineFtChip.value=""; clearActivePills(); hidePuttSections(); calcAll();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
   document.getElementById("undoBtn").addEventListener("click", () => {
@@ -470,8 +434,7 @@
       "hole","date","lie","dist_yd",
       "chip_leave_ft","chip_depth_ft_signed","chip_lateral_ft_signed","chip_depth_dir","chip_line_dir",
       "putt1_ft","putt1_depth_ft_signed","putt1_lateral_ft_signed","putt1_depth_dir","putt1_line_dir",
-      "putt2_ft","putt3_ft",
-      "score"
+      "putt2_ft","putt3_ft","score"
     ];
     const rows = [cols];
     saved.forEach(r=>{
@@ -479,46 +442,55 @@
         r.hole, r.date, r.lie, r.dist,
         r.chipLeave, r.chipDepthSigned, r.chipLateralSigned, r.chipDepthDir, r.chipLineDir,
         r.p1 || "", r.p1DepthSigned || "", r.p1LateralSigned || "", r.p1DepthDir || "", r.p1LineDir || "",
-        r.p2 || "", r.p3 || "",
-        r.score
+        r.p2 || "", r.p3 || "", r.score
       ]);
     });
     const csv = rows.map(a=>a.join(",")).join("\n");
     const blob = new Blob([csv],{type:"text/csv;charset=utf-8;"});
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
-    a.download = "chipping_export_full.csv"; a.click();
+    a.download = "par2_export.csv"; a.click();
   });
 
   document.getElementById("clearBtn").addEventListener("click", () => {
-    saved = [];
-    holeInput.value = 1;
-    renderLog();
+    saved = []; holeInput.value = 1; renderLog();
   });
 
-  // ===== Color mode toggle (Lie / Distance) =====
+  // Color toggle
   document.querySelectorAll('#colorModeSeg button').forEach(b=>{
     b.addEventListener('click', ()=>{
       document.querySelectorAll('#colorModeSeg button').forEach(x=>x.classList.remove('active'));
       b.classList.add('active');
-      colorMode = b.dataset.mode;   // "lie" | "distance"
-      renderLegend();
+      colorMode = b.dataset.mode;
+      renderFilterRow();
       renderChart();
     });
   });
 
-  function renderLegend(){
-    const lg = document.getElementById('chipLegend');
-    if (colorMode === 'lie'){
-      lg.innerHTML = `
-        <span class="lg lg-fairway">Fairway</span>
-        <span class="lg lg-rough">Rough</span>
-        <span class="lg lg-green">Green</span>
-        <span class="lg lg-recovery">Recovery</span>`;
+  // ---- Dynamic filter row (legend + filter in one) ----
+  function renderFilterRow(){
+    const row = document.getElementById('dynFilterRow');
+    row.innerHTML = "";
+    if (colorMode === "lie"){
+      ["Fairway","Rough","Green","Recovery"].forEach(k=>{
+        const span = document.createElement('span');
+        span.className = `flt flt-${k.toLowerCase()} ${activeCats[k] ? "" : "off"}`;
+        span.textContent = k;
+        span.onclick = ()=>{ activeCats[k] = !activeCats[k]; span.classList.toggle('off', !activeCats[k]); renderChart(); };
+        row.appendChild(span);
+      });
     } else {
-      lg.innerHTML = `
-        <span class="lg lg-d1">10–25 yd</span>
-        <span class="lg lg-d2">30–45 yd</span>
-        <span class="lg lg-d3">50–65 yd</span>`;
+      const cats = [
+        {k:"d1", label:"10–25 yd"},
+        {k:"d2", label:"30–45 yd"},
+        {k:"d3", label:"50–65 yd"},
+      ];
+      cats.forEach(({k,label})=>{
+        const span = document.createElement('span');
+        span.className = `flt flt-${k} ${activeCats[k] ? "" : "off"}`;
+        span.textContent = label;
+        span.onclick = ()=>{ activeCats[k] = !activeCats[k]; span.classList.toggle('off', !activeCats[k]); renderChart(); };
+        row.appendChild(span);
+      });
     }
   }
 
@@ -527,7 +499,7 @@
     if (d>=10 && d<=25) return 'd1';
     if (d>=30 && d<=45) return 'd2';
     if (d>=50 && d<=65) return 'd3';
-    return 'd1'; // default
+    return 'd1';
   }
   function colorFor(row){
     if (colorMode === 'lie'){
@@ -544,31 +516,27 @@
     }
   }
 
-  // ===== Dispersion chart (session only) =====
   function renderChart(){
-    const cv = document.getElementById('chipChart');
-    if (!cv) return;
-    const ctx = cv.getContext('2d');
-    const W = cv.width, H = cv.height;
+    const cv = document.getElementById('chipChart'); if (!cv) return;
+    const ctx = cv.getContext('2d'); const W=cv.width, H=cv.height;
     ctx.clearRect(0,0,W,H);
 
-    // collect points
-    const pts = saved
-      .filter(r => r.chipX !== undefined && r.chipY !== undefined)
-      .map(r => ({x:r.chipX, y:r.chipY, c:colorFor(r)}));
+    // Apply current filters
+    const pts = saved.filter(r=>{
+      if (colorMode === "lie") return activeCats[r.lie ?? ""] === true;
+      const b = bucketForDistance(r.dist);
+      return activeCats[b] === true;
+    }).map(r => ({x:r.chipX, y:r.chipY, c:colorFor(r)}));
 
-    // scale (at least ±5ft)
     const maxAbs = Math.max(5, ...pts.map(p => Math.max(Math.abs(p.x), Math.abs(p.y))), 5);
-    const pad = 10;
-    const scale = (Math.min(W,H)/2 - pad) / (maxAbs || 5);
-    const cx = W/2, cy = H/2;
+    const pad = 10, scale = (Math.min(W,H)/2 - pad) / (maxAbs || 5);
+    const cx=W/2, cy=H/2;
 
-    // crosshairs + ticks
-    ctx.strokeStyle = '#2a3138'; ctx.lineWidth = 1;
+    ctx.strokeStyle = '#2a3138'; ctx.lineWidth=1;
     ctx.beginPath(); ctx.moveTo(0,cy); ctx.lineTo(W,cy); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(cx,0); ctx.lineTo(cx,H); ctx.stroke();
 
-    ctx.fillStyle = '#9aa7b2'; ctx.font = '11px system-ui';
+    ctx.fillStyle = '#9aa7b2'; ctx.font='11px system-ui';
     for (let t=-maxAbs; t<=maxAbs; t+=5){
       const x = cx + t*scale, y = cy - t*scale;
       ctx.strokeStyle='#2a3138';
@@ -577,34 +545,27 @@
       if (t!==0){ ctx.fillText(String(t), x-6, cy+14); ctx.fillText(String(t), cx+6, y+3); }
     }
 
-    // mean + RMS radius circle
     let mx=0,my=0,r=0;
     if (pts.length){
       mx = pts.reduce((s,p)=>s+p.x,0)/pts.length;
       my = pts.reduce((s,p)=>s+p.y,0)/pts.length;
       r  = Math.sqrt(pts.reduce((s,p)=>s+(p.x-mx)*(p.x-mx)+(p.y-my)*(p.y-my),0)/pts.length);
     }
-    ctx.strokeStyle = '#2ea043'; ctx.lineWidth = 2;
+    ctx.strokeStyle='#2ea043'; ctx.lineWidth=2;
     ctx.beginPath(); ctx.arc(cx + mx*scale, cy - my*scale, r*scale, 0, Math.PI*2); ctx.stroke();
-    ctx.fillStyle = '#2ea043';
-    ctx.beginPath(); ctx.arc(cx + mx*scale, cy - my*scale, 3, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle='#2ea043'; ctx.beginPath(); ctx.arc(cx + mx*scale, cy - my*scale, 3, 0, Math.PI*2); ctx.fill();
 
-    // points
     pts.forEach(p=>{
-      ctx.beginPath();
-      ctx.arc(cx + p.x*scale, cy - p.y*scale, 2.8, 0, Math.PI*2);
-      ctx.fillStyle = p.c; ctx.fill();
-      ctx.lineWidth = 0.8; ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx + p.x*scale, cy - p.y*scale, 2.8, 0, Math.PI*2);
+      ctx.fillStyle=p.c; ctx.fill(); ctx.lineWidth=.8; ctx.strokeStyle='rgba(255,255,255,.9)'; ctx.stroke();
     });
   }
 
-  // init — start with putts hidden & no lie selected
+  // init
   document.querySelectorAll("#lieChips .pill").forEach(x=>x.classList.remove("active"));
   document.getElementById("sectionP1").classList.add("hidden");
   document.getElementById("sectionP23").classList.add("hidden");
-  renderLegend();
-  calcAll();
-  renderLog();
+  renderFilterRow(); calcAll(); renderLog();
 </script>
 </body>
 </html>
