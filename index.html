@@ -73,7 +73,7 @@
 
   table{width:100%;border-collapse:collapse;font-size:12px}
   th,td{padding:10px 8px;border-bottom:1px solid var(--border);text-align:left;color:var(--text)}
-  th{color:var(--muted);font-weight:600}
+  th{color:#fff;font-weight:600} /* brighter headers */
   .tight th,.tight td{padding:8px}
   .hidden{display:none}
   .score-cell{white-space:nowrap}
@@ -95,8 +95,8 @@
   .flt-d2 { color:#a6e22e; border-color:#3b5b2b }
   .flt-d3 { color:#ffb454; border-color:#6a4c22 }
 
-  #summaryBar{font-weight:600;font-size:12px}
-  #summaryBarTop{font-weight:600;font-size:12px}
+  /* Summary bars */
+  #summaryBarTop{font-weight:700;font-size:14px;text-align:center}
 
   @media (max-width: 380px){
     .row.divider-2cols > .field{grid-template-columns:32px minmax(0,1fr) 32px;gap:6px}
@@ -112,7 +112,7 @@
   <button class="btn" id="clearBtn">Clear</button>
 </header>
 
-<!-- NEW: summary bar at top -->
+<!-- TOP summary (centered, larger) -->
 <section class="wrap panel"><div id="summaryBarTop">Par: 0 | Total: 0 | Up/Down: 0% | Over Par: 0</div></section>
 
 <main class="wrap" id="topOfApp">
@@ -245,9 +245,6 @@
     <div></div>
     <button class="btn undo" id="undoBtn">Undo</button>
   </section>
-
-  <!-- Bottom summary (kept) -->
-  <section class="panel"><div id="summaryBar">Par: 0 | Total: 0 | Up/Down: 0% | Over Par: 0</div></section>
 
   <!-- Log -->
   <section class="panel">
@@ -486,7 +483,6 @@
     const updownPct = attempts ? Math.round((successes/attempts)*100) : 0;
     const over = total - par; const overLabel = over > 0 ? `+${over}` : `${over}`;
     const sumTxt = `Par: ${par} | Total: ${total} | Up/Down: ${updownPct}% | Over Par: ${overLabel}`;
-    document.getElementById("summaryBar").textContent = sumTxt;
     const sbTop = document.getElementById("summaryBarTop"); if (sbTop) sbTop.textContent = sumTxt;
 
     renderFilterRow(); renderChart();
@@ -569,7 +565,6 @@
     if (!confirm('Clear EVERYTHING? This removes all saved holes and resets the form.')) return;
     saved = []; holeInput.value = 1; dateInput.value = new Date().toISOString().slice(0,10);
     clearUISelections(); renderLog();
-    document.getElementById('summaryBar').textContent = 'Par: 0 | Total: 0 | Up/Down: 0% | Over Par: 0';
     const sbTop = document.getElementById('summaryBarTop'); if (sbTop) sbTop.textContent = 'Par: 0 | Total: 0 | Up/Down: 0% | Over Par: 0';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
