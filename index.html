@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Par2 — Steppers (Signed Logic)</title>
+<title>Par2 — Signed Text Inputs + Top Summary</title>
 <style>
   :root { --bg:#0f1115; --panel:#1a1f24; --panel-2:#11161b; --text:#e8ecf1;
     --muted:#9aa7b2; --accent:#2ea043; --btn:#2b3138; --btn-active:#355043;
-    --border:#2a3138; --radius:14px; --danger:#c63b3b; }
+    --border:#2a3138; --radius:14px; }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--text);
     font-family:-apple-system,BlinkMacSystemFont,Inter,Arial,sans-serif}
@@ -18,16 +18,14 @@
     padding:8px 12px;border-radius:10px;cursor:pointer}
   .btn:focus{outline:2px solid #5a9; outline-offset:2px}
   .save{background:var(--accent);border:none;color:#08130a;font-weight:700}
-  .danger{background:#3b2323;border-color:#5b2d2d;color:#ffd7d7}
   h2{margin:0 0 8px 0;font-size:14px;color:var(--muted);font-weight:600}
   .panel{background:var(--panel);padding:12px;margin:10px 0;border-radius:var(--radius);
     border:1px solid var(--border)}
   .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .row.divider-2cols{grid-template-columns:1fr 1px 1fr;align-items:start}
+  .row.divider-2cols{grid-template-columns:minmax(0,1fr) 1px minmax(0,1fr);align-items:start}
   .vdiv{width:1px;background:var(--border);height:100%;border-radius:1px}
   .field{display:grid;gap:6px}
 
-  /* Inputs & pills */
   .input,.counter,.pill{background:var(--panel-2);border:1px solid var(--border);border-radius:12px;
     padding:10px 12px;color:var(--text);display:inline-flex;align-items:center;justify-content:center}
   .input input{background:transparent;border:none;outline:none;color:var(--text);width:100%;font-size:16px}
@@ -35,15 +33,15 @@
   .counter button{width:36px;height:36px;background:var(--btn);color:var(--text);
     border:1px solid var(--border);border-radius:10px}
 
-  /* Lie pills */
-  .chips{display:grid;gap:8px;grid-template-columns:repeat(4,1fr)}
-  .pill{padding:12px 14px;border-radius:10px;cursor:pointer;font-size:16px;}
+  .chips{display:flex;gap:8px;flex-wrap:wrap}
+  .pill{padding:10px 12px;border-radius:10px;cursor:pointer}
   .pill.active{outline:2px solid var(--accent)}
-  .pill { color:var(--muted); border-color:var(--border); }
-  .pill-fairway.active { color:#7CFC00; border-color:#375b37; outline-color:#7CFC00 }
-  .pill-rough.active   { color:#ffa74d; border-color:#6f5131; outline-color:#ffa74d }
-  .pill-sand.active    { color:#e8d27c; border-color:#6a5b2e; outline-color:#e8d27c }
-  .pill-recovery.active{ color:#ff5a5a; border-color:#633138; outline-color:#ff5a5a }
+  /* Lie colors (active only) */
+  .pill{ color:var(--muted); border-color:var(--border); }
+  .pill[data-lie="Fairway"].active  { color:#7CFC00; border-color:#375b37; outline-color:#7CFC00 }
+  .pill[data-lie="Rough"].active    { color:#ffa74d; border-color:#6f5131; outline-color:#ffa74d }
+  .pill[data-lie="Sand"].active     { color:#e8d27c; border-color:#6a5b2e; outline-color:#e8d27c }
+  .pill[data-lie="Recovery"].active { color:#ff5a5a; border-color:#633138; outline-color:#ff5a5a }
 
   #distanceGrid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
   #distanceGrid button{background:var(--btn);color:var(--text);border:1px solid var(--border);
@@ -52,19 +50,22 @@
 
   .stack{display:grid;gap:8px}
   .subtle{color:var(--muted);font-size:12px}
-  .pad{display:grid;grid-template-columns:1fr;gap:8px;align-items:center}
 
-  /* --- Stepper UI (signed values) --- */
-  .stepper { display:grid; grid-template-columns:36px 1fr 36px; gap:8px; align-items:center; }
-  .stepper .step { width:36px; height:36px; background:var(--btn); border:1px solid var(--border); border-radius:10px; font-size:16px; line-height:1; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  /* Steppers */
+  .stepper { display:grid; grid-template-columns:36px minmax(0,1fr) 36px; gap:8px; align-items:center; }
+  .stepper .step { width:36px; height:36px; background:var(--btn); border:1px solid var(--border); border-radius:10px; font-size:16px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
   .readout { display:flex; align-items:center; justify-content:center; gap:6px; font-weight:800; font-size:20px; }
-  .readout input.readnum{ width:70px; text-align:center; font-weight:800; font-size:20px; background:transparent; border:none; outline:none; color:var(--text); }
+  .readout input.readnum{ width:clamp(42px, 18vw, 70px); text-align:center; font-weight:800; font-size:20px; background:transparent; border:none; outline:none; color:var(--text); }
   .readout .unit { font-weight:600; font-size:14px; color:var(--text); opacity:.9 }
-
   .modeTag { display:inline-block; text-align:center; border-radius:999px; padding:6px 10px; border:1px solid var(--border); background:var(--panel-2); font-weight:600; font-size:13px; color:var(--text) }
-  /* No active highlight anymore */
 
-  /* Footer buttons + inline score */
+  /* Put label above the number (center column) */
+  .row.divider-2cols > .field{display:grid;grid-template-columns:36px minmax(0,1fr) 36px;grid-template-rows:auto auto auto;gap:6px 8px;align-items:center}
+  .row.divider-2cols > .field > .subtle{grid-column:2;grid-row:1;justify-self:center}
+  .row.divider-2cols > .field > .stepper{grid-column:1 / -1;grid-row:2}
+  .row.divider-2cols > .field > .modeTag{grid-column:2;grid-row:3;justify-self:center}
+
+  /* Footer buttons */
   .footer{display:grid;grid-template-columns:auto auto 1fr auto;gap:10px;align-items:center}
   .footer .save {padding:12px 18px; font-size:16px; border-radius:12px; min-width:130px;}
   .footer .scoreline{font-weight:600}
@@ -75,23 +76,17 @@
   th{color:var(--muted);font-weight:600}
   .tight th,.tight td{padding:8px}
   .hidden{display:none}
-
-  /* Trash icon inside Score cell */
   .score-cell{white-space:nowrap}
   .rowbtn{background:var(--btn);border:1px solid var(--border);border-radius:6px;padding:0 4px;cursor:pointer;font-size:11px;line-height:1;margin-left:6px}
-  .rowbtn:hover{background:#32414d}
 
-  /* Segmented toggle */
+  /* Color toggle + filters */
   .seg {display:inline-flex; border:1px solid var(--border); border-radius:10px; overflow:hidden}
   .seg button{background:var(--panel-2); color:var(--text); padding:6px 10px; border:none; cursor:pointer}
   .seg button.active{background:var(--btn-active)}
-
-  /* Dispersion + filter row */
   canvas{display:block; width:100%; height:auto; max-width:380px; border-radius:10px; background:#101419}
   .filterbar { margin-top:8px; display:flex; gap:8px; flex-wrap:wrap }
   .flt { display:inline-flex; align-items:center; padding:4px 8px; border-radius:10px; border:1px solid var(--border); user-select:none; cursor:pointer; background:transparent; }
   .flt.off { filter: grayscale(1); opacity:.45; }
-  .flt:focus { outline:none }
   .flt-fairway { color:#7CFC00; border-color:#375b37 }
   .flt-rough   { color:#ffa74d; border-color:#6f5131 }
   .flt-sand    { color:#e8d27c; border-color:#6a5b2e }
@@ -100,17 +95,25 @@
   .flt-d2 { color:#a6e22e; border-color:#3b5b2b }
   .flt-d3 { color:#ffb454; border-color:#6a4c22 }
 
-  .tooltip{position:fixed;pointer-events:none;background:#0d1216;border:1px solid var(--border);padding:6px 8px;border-radius:8px;font-size:11px;color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.35)}
-
   #summaryBar{font-weight:600;font-size:12px}
-  .filters-footer{ margin-top:8px; display:flex; justify-content:flex-end }
+  #summaryBarTop{font-weight:600;font-size:12px}
+
+  @media (max-width: 380px){
+    .row.divider-2cols > .field{grid-template-columns:32px minmax(0,1fr) 32px;gap:6px}
+    .stepper { grid-template-columns:32px minmax(0,1fr) 32px; gap:6px; }
+    .stepper .step{ width:32px; height:32px }
+    .readout input.readnum{ width:clamp(38px, 22vw, 56px); font-size:18px }
+  }
 </style>
 </head>
 <body>
 <header class="wrap">
-  <button class="btn" id="exportBtn" aria-label="Export session CSV">Export</button>
-  <button class="btn danger" id="clearBtn">Clear</button>
+  <button class="btn" id="exportBtn">Export</button>
+  <button class="btn" id="clearBtn">Clear</button>
 </header>
+
+<!-- NEW: summary bar at top -->
+<section class="wrap panel"><div id="summaryBarTop">Par: 0 | Total: 0 | Up/Down: 0% | Over Par: 0</div></section>
 
 <main class="wrap" id="topOfApp">
   <section class="panel">
@@ -118,58 +121,62 @@
       <div class="field">
         <h2>Hole</h2>
         <div class="counter">
-          <button id="holeMinus" aria-label="Previous hole">−</button>
-          <div class="input"><input id="hole" type="number" min="1" value="1" inputmode="numeric" aria-label="Hole" /></div>
-          <button id="holePlus" aria-label="Next hole">+</button>
+          <button id="holeMinus">−</button>
+          <div class="input"><input id="hole" type="number" min="1" value="1" inputmode="numeric" /></div>
+          <button id="holePlus">+</button>
         </div>
       </div>
       <div class="field">
         <h2>Date</h2>
-        <div class="input"><input id="date" type="date" aria-label="Date" /></div>
+        <div class="input"><input id="date" type="date" /></div>
       </div>
     </div>
   </section>
 
-  <section class="panel" aria-labelledby="distanceHeading">
-    <h2 id="distanceHeading">Starting Distance (yds)</h2>
-    <div id="distanceGrid" role="grid" aria-label="Distance in yards">
-      <button role="gridcell">10</button><button role="gridcell">15</button><button role="gridcell">20</button><button role="gridcell">25</button><button role="gridcell">30</button><button role="gridcell">35</button>
-      <button role="gridcell">40</button><button role="gridcell">45</button><button role="gridcell">50</button><button role="gridcell">55</button><button role="gridcell">60</button><button role="gridcell">65</button>
+  <section class="panel">
+    <h2>Starting Distance (yds)</h2>
+    <div id="distanceGrid">
+      <button>10</button><button>15</button><button>20</button><button>25</button><button>30</button><button>35</button>
+      <button>40</button><button>45</button><button>50</button><button>55</button><button>60</button><button>65</button>
     </div>
   </section>
 
-  <section class="panel" aria-labelledby="lieHeading">
-    <h2 id="lieHeading">Lie</h2>
-    <div class="chips" id="lieChips" role="group" aria-label="Select lie">
-      <button class="pill pill-fairway" data-lie="Fairway" aria-pressed="false">Fairway</button>
-      <button class="pill pill-rough"   data-lie="Rough"   aria-pressed="false">Rough</button>
-      <button class="pill pill-sand"    data-lie="Sand"    aria-pressed="false">Sand</button>
-      <button class="pill pill-recovery"data-lie="Recovery"aria-pressed="false">Recovery</button>
+  <section class="panel">
+    <h2>Lie</h2>
+    <div class="chips" id="lieChips">
+      <div class="pill" data-lie="Fairway">Fairway</div>
+      <div class="pill" data-lie="Rough">Rough</div>
+      <div class="pill" data-lie="Sand">Sand</div>
+      <div class="pill" data-lie="Recovery">Recovery</div>
     </div>
   </section>
 
-  <!-- Chip result with stepper controls + manual input + divider -->
-  <section class="panel" id="chipSection" aria-labelledby="chipPadHeading">
-    <h2 id="chipPadHeading">Chip Result (Direction)</h2>
+  <!-- Chip result -->
+  <section class="panel" id="chipSection">
+    <h2>Chip Result (Direction)</h2>
     <div class="row divider-2cols">
-      <!-- Depth -->
       <div class="field">
         <div class="subtle">Depth</div>
         <div class="stepper">
-          <button class="step" id="depthDown" aria-label="Decrement depth (short)">▼</button>
-          <div class="readout"><input id="depthInput" class="readnum" type="number" step="1" value="0" min="-99" max="99" inputmode="numeric" /><span class="unit">ft</span></div>
-          <button class="step" id="depthUp" aria-label="Increment depth (long)">▲</button>
+          <button class="step" id="depthDown">▼</button>
+          <div class="readout">
+            <input id="depthInput" class="readnum" type="text" inputmode="text" pattern="-?\d{1,2}" maxlength="3" value="0" />
+            <span class="unit">ft</span>
+          </div>
+          <button class="step" id="depthUp">▲</button>
         </div>
         <div id="depthModeTag" class="modeTag">Exact</div>
       </div>
       <div class="vdiv" aria-hidden="true"></div>
-      <!-- Line -->
       <div class="field">
         <div class="subtle">Line</div>
         <div class="stepper">
-          <button class="step" id="lineLeft" aria-label="Decrement line (left)">◀</button>
-          <div class="readout"><input id="lineInput" class="readnum" type="number" step="1" value="0" min="-99" max="99" inputmode="numeric" /><span class="unit">ft</span></div>
-          <button class="step" id="lineRight" aria-label="Increment line (right)">▶</button>
+          <button class="step" id="lineLeft">◀</button>
+          <div class="readout">
+            <input id="lineInput" class="readnum" type="text" inputmode="text" pattern="-?\d{1,2}" maxlength="3" value="0" />
+            <span class="unit">ft</span>
+          </div>
+          <button class="step" id="lineRight">▶</button>
         </div>
         <div id="lineModeTag" class="modeTag">Straight</div>
       </div>
@@ -177,9 +184,9 @@
     <div class="subtle" id="derivedChip" style="margin-top:8px;">Derived leave: —</div>
   </section>
 
-  <!-- Putt 1: mirrored stepper UI (signed) -->
-  <section class="panel hidden" id="sectionP1" aria-labelledby="p1Heading">
-    <h2 id="p1Heading">Putt 1</h2>
+  <!-- Putt 1 -->
+  <section class="panel hidden" id="sectionP1">
+    <h2>Putt 1</h2>
     <div class="stack">
       <div class="field">
         <div class="subtle">Distance before Putt 1 (ft)</div>
@@ -189,9 +196,12 @@
         <div class="field">
           <div class="subtle">Depth</div>
           <div class="stepper">
-            <button class="step" id="depthDownP1" aria-label="Decrement depth (short)">▼</button>
-            <div class="readout"><input id="depthInputP1" class="readnum" type="number" step="1" value="0" min="-99" max="99" inputmode="numeric" /><span class="unit">ft</span></div>
-            <button class="step" id="depthUpP1" aria-label="Increment depth (long)">▲</button>
+            <button class="step" id="depthDownP1">▼</button>
+            <div class="readout">
+              <input id="depthInputP1" class="readnum" type="text" inputmode="text" pattern="-?\d{1,2}" maxlength="3" value="0" />
+              <span class="unit">ft</span>
+            </div>
+            <button class="step" id="depthUpP1">▲</button>
           </div>
           <div id="depthModeTagP1" class="modeTag">Exact</div>
         </div>
@@ -199,9 +209,12 @@
         <div class="field">
           <div class="subtle">Line</div>
           <div class="stepper">
-            <button class="step" id="lineLeftP1" aria-label="Decrement line (left)">◀</button>
-            <div class="readout"><input id="lineInputP1" class="readnum" type="number" step="1" value="0" min="-99" max="99" inputmode="numeric" /><span class="unit">ft</span></div>
-            <button class="step" id="lineRightP1" aria-label="Increment line (right)">▶</button>
+            <button class="step" id="lineLeftP1">◀</button>
+            <div class="readout">
+              <input id="lineInputP1" class="readnum" type="text" inputmode="text" pattern="-?\d{1,2}" maxlength="3" value="0" />
+              <span class="unit">ft</span>
+            </div>
+            <button class="step" id="lineRightP1">▶</button>
           </div>
           <div id="lineModeTagP1" class="modeTag">Straight</div>
         </div>
@@ -211,8 +224,8 @@
   </section>
 
   <!-- Putts 2 & 3 -->
-  <section class="panel hidden" id="sectionP23" aria-labelledby="p23Heading">
-    <h2 id="p23Heading">Putts 2 & 3 (distances only)</h2>
+  <section class="panel hidden" id="sectionP23">
+    <h2>Putts 2 & 3 (distances only)</h2>
     <div class="row">
       <div class="field">
         <div class="subtle">Putt 2 (ft)</div>
@@ -225,6 +238,7 @@
     </div>
   </section>
 
+  <!-- Save / Undo -->
   <section class="panel footer">
     <button class="btn save" id="saveBtn">Save Hole</button>
     <div class="scoreline"><strong>Score:</strong> <span id="score">—</span></div>
@@ -232,9 +246,11 @@
     <button class="btn undo" id="undoBtn">Undo</button>
   </section>
 
+  <!-- Bottom summary (kept) -->
   <section class="panel"><div id="summaryBar">Par: 0 | Total: 0 | Up/Down: 0% | Over Par: 0</div></section>
 
-  <section class="panel" aria-label="Log of saved holes">
+  <!-- Log -->
+  <section class="panel">
     <table class="tight">
       <thead>
         <tr>
@@ -246,23 +262,26 @@
     </table>
   </section>
 
+  <!-- Chart + filters -->
   <section class="panel">
     <h2 style="display:flex;justify-content:space-between;align-items:center; gap:8px">
       <span>Session Dispersion (ft)</span>
       <span class="seg" id="colorModeSeg">
-        <button data-mode="lie" class="active" aria-pressed="true">Lie</button>
-        <button data-mode="distance" aria-pressed="false">Distance</button>
+        <button data-mode="lie" class="active">Lie</button>
+        <button data-mode="distance">Distance</button>
       </span>
     </h2>
-    <canvas id="chipChart" width="380" height="280" aria-label="Chip dispersion chart" role="img"></canvas>
+    <canvas id="chipChart" width="380" height="280"></canvas>
     <div class="filterbar subtle" id="dynFilterRow"></div>
-    <div class="filters-footer"><button class="rowbtn" id="resetFiltersBtn" title="Reset filters">Reset filters</button></div>
-    <div class="tooltip hidden" id="tooltip"></div>
+    <div style="display:flex;justify-content:flex-end;margin-top:8px;">
+      <button class="rowbtn" id="resetFiltersBtn">Reset filters</button>
+    </div>
   </section>
 </main>
 
 <script>
   const r0 = (n) => Math.round(Number(n) || 0);
+  const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
 
   let selectedDist = null, selectedLie = "", saved = [];
   let colorMode = "lie";
@@ -279,22 +298,12 @@
 
   // Distance
   const distButtons = Array.from(document.querySelectorAll("#distanceGrid button"));
-  distButtons.forEach((btn, idx)=>{
+  distButtons.forEach(btn=>{
     btn.addEventListener("click", ()=>{
-      distButtons.forEach(b=>{b.classList.remove("active"); b.setAttribute('aria-pressed','false');});
+      distButtons.forEach(b=>b.classList.remove("active"));
       btn.classList.add("active");
-      btn.setAttribute('aria-pressed','true');
       selectedDist = parseInt(btn.textContent,10);
       calcAll();
-    });
-    btn.addEventListener('keydown', (e)=>{
-      const cols = 6; const i = idx; let j = i;
-      if (['ArrowRight','ArrowLeft','ArrowUp','ArrowDown'].includes(e.key)) e.preventDefault();
-      if (e.key==='ArrowRight') j = Math.min(distButtons.length-1, i+1);
-      if (e.key==='ArrowLeft')  j = Math.max(0, i-1);
-      if (e.key==='ArrowDown')  j = Math.min(distButtons.length-1, i+cols);
-      if (e.key==='ArrowUp')    j = Math.max(0, i-cols);
-      if (j!==i){ distButtons[j].focus(); }
     });
   });
 
@@ -302,15 +311,14 @@
   const lieButtons = document.querySelectorAll("#lieChips .pill");
   lieButtons.forEach(p=>{
     p.addEventListener("click", ()=>{
-      lieButtons.forEach(x=>{x.classList.remove("active"); x.setAttribute('aria-pressed','false');});
+      lieButtons.forEach(x=>x.classList.remove("active"));
       p.classList.add("active");
-      p.setAttribute('aria-pressed','true');
       selectedLie = p.dataset.lie;
       calcAll();
     });
   });
 
-  // Signed steppers — CHIP
+  // ---------- Signed steppers — CHIP (text inputs) ----------
   let depthSigned = 0; // negative = Short, positive = Long
   let lineSigned  = 0; // negative = Left,  positive = Right
   const depthInput = document.getElementById('depthInput');
@@ -318,39 +326,52 @@
   const depthTag   = document.getElementById('depthModeTag');
   const lineTag    = document.getElementById('lineModeTag');
 
-  function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
+  let pendingDepth=false, pendingLine=false;
+  function normalizeSignedText(el){
+    let v = (el.value||"").replace(/[–−]/g,'-').replace(/[^0-9-]/g,'');
+    if (v === '' || v === '-') return {pending:true, num:0, text:v};
+    let n = parseInt(v,10); if (isNaN(n)) n = 0; n = clamp(n, -99, 99);
+    return {pending:false, num:n, text:String(n)};
+  }
   function updateChipStepperUI(){
-    depthInput.value = String(depthSigned);
-    lineInput.value  = String(lineSigned);
+    if (!pendingDepth) depthInput.value = String(depthSigned);
+    if (!pendingLine)  lineInput.value  = String(lineSigned);
     depthTag.textContent = depthSigned<0? 'Short' : depthSigned>0? 'Long' : 'Exact';
     lineTag.textContent  = lineSigned<0 ? 'Left'  : lineSigned>0 ? 'Right': 'Straight';
   }
-  document.getElementById('depthDown').onclick = ()=>{ depthSigned = clamp(depthSigned - 1, -99, 99); updateChipStepperUI(); calcAll(); };
-  document.getElementById('depthUp').onclick   = ()=>{ depthSigned = clamp(depthSigned + 1, -99, 99); updateChipStepperUI(); calcAll(); };
-  document.getElementById('lineLeft').onclick  = ()=>{ lineSigned  = clamp(lineSigned  - 1, -99, 99); updateChipStepperUI(); calcAll(); };
-  document.getElementById('lineRight').onclick = ()=>{ lineSigned  = clamp(lineSigned  + 1, -99, 99); updateChipStepperUI(); calcAll(); };
-  depthInput.addEventListener('input', ()=>{ depthSigned = clamp(r0(depthInput.value), -99, 99); updateChipStepperUI(); calcAll(); });
-  lineInput .addEventListener('input', ()=>{ lineSigned  = clamp(r0(lineInput.value ), -99, 99); updateChipStepperUI(); calcAll(); });
+  document.getElementById('depthDown').onclick = ()=>{ pendingDepth=false; depthSigned = clamp(depthSigned - 1, -99, 99); updateChipStepperUI(); calcAll(); };
+  document.getElementById('depthUp').onclick   = ()=>{ pendingDepth=false; depthSigned = clamp(depthSigned + 1, -99, 99); updateChipStepperUI(); calcAll(); };
+  document.getElementById('lineLeft').onclick  = ()=>{ pendingLine=false;  lineSigned  = clamp(lineSigned  - 1, -99, 99); updateChipStepperUI(); calcAll(); };
+  document.getElementById('lineRight').onclick = ()=>{ pendingLine=false;  lineSigned  = clamp(lineSigned  + 1, -99, 99); updateChipStepperUI(); calcAll(); };
+  depthInput.addEventListener('focus', ()=> depthInput.select());
+  lineInput .addEventListener('focus', ()=> lineInput.select());
+  depthInput.addEventListener('input', ()=>{ const r = normalizeSignedText(depthInput); pendingDepth=r.pending; depthSigned=r.num; if(!r.pending) depthInput.value=r.text; updateChipStepperUI(); calcAll(); });
+  lineInput .addEventListener('input', ()=>{ const r = normalizeSignedText(lineInput ); pendingLine=r.pending;  lineSigned =r.num; if(!r.pending) lineInput.value=r.text;  updateChipStepperUI(); calcAll(); });
 
-  // Signed steppers — PUTT 1
+  // ---------- Signed steppers — PUTT 1 (text inputs) ----------
   let depthSignedP1 = 0; let lineSignedP1 = 0;
   const depthInputP1 = document.getElementById('depthInputP1');
   const lineInputP1  = document.getElementById('lineInputP1');
   const depthTagP1   = document.getElementById('depthModeTagP1');
   const lineTagP1    = document.getElementById('lineModeTagP1');
+
+  let pendingDepthP1=false, pendingLineP1=false;
   function updateP1StepperUI(){
-    depthInputP1.value = String(depthSignedP1);
-    lineInputP1.value  = String(lineSignedP1);
+    if (!pendingDepthP1) depthInputP1.value = String(depthSignedP1);
+    if (!pendingLineP1)  lineInputP1.value  = String(lineSignedP1);
     depthTagP1.textContent = depthSignedP1<0? 'Short' : depthSignedP1>0? 'Long' : 'Exact';
     lineTagP1.textContent  = lineSignedP1<0 ? 'Left'  : lineSignedP1>0 ? 'Right': 'Straight';
   }
-  document.getElementById('depthDownP1').onclick = ()=>{ depthSignedP1 = clamp(depthSignedP1 - 1, -99, 99); updateP1StepperUI(); calcAll(); };
-  document.getElementById('depthUpP1').onclick   = ()=>{ depthSignedP1 = clamp(depthSignedP1 + 1, -99, 99); updateP1StepperUI(); calcAll(); };
-  document.getElementById('lineLeftP1').onclick  = ()=>{ lineSignedP1  = clamp(lineSignedP1  - 1, -99, 99); updateP1StepperUI(); calcAll(); };
-  document.getElementById('lineRightP1').onclick = ()=>{ lineSignedP1  = clamp(lineSignedP1  + 1, -99, 99); updateP1StepperUI(); calcAll(); };
-  depthInputP1.addEventListener('input', ()=>{ depthSignedP1 = clamp(r0(depthInputP1.value), -99, 99); updateP1StepperUI(); calcAll(); });
-  lineInputP1 .addEventListener('input', ()=>{ lineSignedP1  = clamp(r0(lineInputP1.value ), -99, 99); updateP1StepperUI(); calcAll(); });
+  document.getElementById('depthDownP1').onclick = ()=>{ pendingDepthP1=false; depthSignedP1 = clamp(depthSignedP1 - 1, -99, 99); updateP1StepperUI(); calcAll(); };
+  document.getElementById('depthUpP1').onclick   = ()=>{ pendingDepthP1=false; depthSignedP1 = clamp(depthSignedP1 + 1, -99, 99); updateP1StepperUI(); calcAll(); };
+  document.getElementById('lineLeftP1').onclick  = ()=>{ pendingLineP1=false;  lineSignedP1  = clamp(lineSignedP1  - 1, -99, 99); updateP1StepperUI(); calcAll(); };
+  document.getElementById('lineRightP1').onclick = ()=>{ pendingLineP1=false;  lineSignedP1  = clamp(lineSignedP1  + 1, -99, 99); updateP1StepperUI(); calcAll(); };
+  depthInputP1.addEventListener('focus', ()=> depthInputP1.select());
+  lineInputP1 .addEventListener('focus', ()=> lineInputP1.select());
+  depthInputP1.addEventListener('input', ()=>{ const r = normalizeSignedText(depthInputP1); pendingDepthP1=r.pending; depthSignedP1=r.num; if(!r.pending) depthInputP1.value=r.text; updateP1StepperUI(); calcAll(); });
+  lineInputP1 .addEventListener('input', ()=>{ const r = normalizeSignedText(lineInputP1 ); pendingLineP1=r.pending;  lineSignedP1 =r.num; if(!r.pending) lineInputP1.value=r.text;  updateP1StepperUI(); calcAll(); });
 
+  // Other fields
   const putt1Dist   = document.getElementById("putt1Dist");
   const p2          = document.getElementById("putt2");
   const p3          = document.getElementById("putt3");
@@ -395,7 +416,6 @@
     const p1HasInput   = (Math.abs(depthSignedP1) || Math.abs(lineSignedP1)) > 0;
     updateVisibility(chipHasInput, p1HasInput);
 
-    // Scoring
     let strokes = 1, putts = 0;
     if (r0(putt1Dist.value) > 0) putts++;
     if (r0(p2.value) > 0) putts++;
@@ -406,10 +426,10 @@
   }
 
   function clearUISelections(){
-    distButtons.forEach(b=>{b.classList.remove("active"); b.setAttribute('aria-pressed','false');}); selectedDist=null;
-    lieButtons.forEach(x=>{x.classList.remove("active"); x.setAttribute('aria-pressed','false');}); selectedLie = "";
-    depthSigned=0; lineSigned=0; updateChipStepperUI();
-    depthSignedP1=0; lineSignedP1=0; updateP1StepperUI();
+    distButtons.forEach(b=>b.classList.remove("active")); selectedDist=null;
+    lieButtons.forEach(x=>x.classList.remove("active")); selectedLie = "";
+    depthSigned=0; lineSigned=0; pendingDepth=false; pendingLine=false; updateChipStepperUI();
+    depthSignedP1=0; lineSignedP1=0; pendingDepthP1=false; pendingLineP1=false; updateP1StepperUI();
     putt1Dist.value=""; p2.value=""; p3.value="";
     document.getElementById("sectionP1").classList.add("hidden");
     document.getElementById("sectionP23").classList.add("hidden");
@@ -421,9 +441,9 @@
   function applyRowToUI(r){
     clearUISelections();
     selectedDist = Number(r.dist)||null;
-    if (selectedDist){ const btn = distButtons.find(b=> Number(b.textContent) === selectedDist); if (btn){ btn.classList.add('active'); btn.setAttribute('aria-pressed','true'); } }
+    if (selectedDist){ const btn = distButtons.find(b=> Number(b.textContent) === selectedDist); if (btn){ btn.classList.add('active'); } }
     selectedLie = r.lie || "";
-    if (selectedLie){ document.querySelectorAll('#lieChips .pill').forEach(b=>{ const on = b.dataset.lie === selectedLie; b.classList.toggle('active', on); b.setAttribute('aria-pressed', on?'true':'false'); }); }
+    if (selectedLie){ document.querySelectorAll('#lieChips .pill').forEach(b=> b.classList.toggle('active', b.dataset.lie===selectedLie)); }
 
     depthSigned = Number(r.chipDepthSigned||0);
     lineSigned  = Number(r.chipLateralSigned||0);
@@ -433,17 +453,15 @@
     lineSignedP1  = Number(r.p1LateralSigned||0);
     updateP1StepperUI();
 
-    document.getElementById('putt1Dist').value = r.p1 || '';
-    document.getElementById('putt2').value = r.p2 || '';
-    document.getElementById('putt3').value = r.p3 || '';
+    putt1Dist.value = r.p1 || '';
+    p2.value = r.p2 || '';
+    p3.value = r.p3 || '';
 
     const chipHasInput = (Math.abs(depthSigned) || Math.abs(lineSigned)) > 0;
     const p1HasInput   = (Math.abs(depthSignedP1) || Math.abs(lineSignedP1)) > 0;
     updateVisibility(chipHasInput, p1HasInput);
-
     calcAll();
   }
-
   function findSavedByHole(h){ const list = saved.filter(x => Number(x.hole) === Number(h)); return list.length ? list[list.length-1] : null; }
   function onHoleChange(){ const h = parseInt(holeInput.value || '1', 10); const rec = findSavedByHole(h); if (rec) applyRowToUI(rec); else clearUISelections(); }
 
@@ -460,7 +478,6 @@
         <td class="score-cell">${r.score}<button class="rowbtn" data-del="${idx}" title="Delete">🗑</button></td>`;
       tbody.appendChild(tr);
     });
-
     tbody.querySelectorAll('button[data-del]').forEach(btn=>{ btn.onclick = ()=>{ const i = Number(btn.getAttribute('data-del')); saved.splice(i,1); renderLog(); }; });
 
     const holes = saved.length, par = holes*2, total = saved.reduce((s,r)=>s+(Number(r.score)||0),0);
@@ -468,7 +485,9 @@
     const successes = saved.filter(r => (includeChipInsInUpDown ? r.score <= 2 : r.score === 2)).length;
     const updownPct = attempts ? Math.round((successes/attempts)*100) : 0;
     const over = total - par; const overLabel = over > 0 ? `+${over}` : `${over}`;
-    document.getElementById("summaryBar").textContent = `Par: ${par} | Total: ${total} | Up/Down: ${updownPct}% | Over Par: ${overLabel}`;
+    const sumTxt = `Par: ${par} | Total: ${total} | Up/Down: ${updownPct}% | Over Par: ${overLabel}`;
+    document.getElementById("summaryBar").textContent = sumTxt;
+    const sbTop = document.getElementById("summaryBarTop"); if (sbTop) sbTop.textContent = sumTxt;
 
     renderFilterRow(); renderChart();
   }
@@ -491,9 +510,9 @@
     const p1   = leaveFromSigned(depthSignedP1, lineSignedP1);
 
     let strokes = 1, putts = 0;
-    const p1d = r0(document.getElementById('putt1Dist').value); if (p1d>0) putts++;
-    const p2d = r0(document.getElementById('putt2').value);       if (p2d>0) putts++;
-    const p3d = r0(document.getElementById('putt3').value);       if (p3d>0) putts++;
+    const p1d = r0(putt1Dist.value); if (p1d>0) putts++;
+    const p2d = r0(p2.value);       if (p2d>0) putts++;
+    const p3d = r0(p3.value);       if (p3d>0) putts++;
     strokes += putts;
     if (chip.leave===0 && putts===0) strokes = 1;
 
@@ -548,42 +567,111 @@
 
   document.getElementById("clearBtn").addEventListener("click", () => {
     if (!confirm('Clear EVERYTHING? This removes all saved holes and resets the form.')) return;
-    saved = [];
-    holeInput.value = 1;
-    dateInput.value = new Date().toISOString().slice(0,10);
-    clearUISelections();
-    renderLog(); renderFilterRow(); renderChart();
+    saved = []; holeInput.value = 1; dateInput.value = new Date().toISOString().slice(0,10);
+    clearUISelections(); renderLog();
     document.getElementById('summaryBar').textContent = 'Par: 0 | Total: 0 | Up/Down: 0% | Over Par: 0';
+    const sbTop = document.getElementById('summaryBarTop'); if (sbTop) sbTop.textContent = 'Par: 0 | Total: 0 | Up/Down: 0% | Over Par: 0';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
-  document.getElementById('resetFiltersBtn').addEventListener('click', ()=>{ Object.keys(activeCats).forEach(k=> activeCats[k] = true); renderFilterRow(); renderChart(); });
-  document.querySelectorAll('#colorModeSeg button').forEach(b=>{ b.addEventListener('click', ()=>{ document.querySelectorAll('#colorModeSeg button').forEach(x=>{x.classList.remove('active'); x.setAttribute('aria-pressed','false');}); b.classList.add('active'); b.setAttribute('aria-pressed','true'); colorMode = b.dataset.mode; renderFilterRow(); renderChart(); }); });
+  // Color toggle & filters
+  document.querySelectorAll('#colorModeSeg button').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      document.querySelectorAll('#colorModeSeg button').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active'); colorMode = b.dataset.mode;
+      renderFilterRow(); renderChart();
+    });
+  });
+  document.getElementById('resetFiltersBtn').addEventListener('click', ()=>{
+    Object.keys(activeCats).forEach(k=> activeCats[k] = true); renderFilterRow(); renderChart();
+  });
 
   function renderFilterRow(){
-    const row = document.getElementById('dynFilterRow'); row.innerHTML = "";
-    const makeSpan = (key, label, cls) => { const el = document.createElement('span'); el.setAttribute('role','button'); el.tabIndex = 0; el.className = `flt ${cls} ${activeCats[key] ? '' : 'off'}`; el.setAttribute('aria-pressed', activeCats[key] ? 'true' : 'false'); el.textContent = label; el.onclick = ()=>{ activeCats[key] = !activeCats[key]; el.classList.toggle('off', !activeCats[key]); el.setAttribute('aria-pressed', activeCats[key] ? 'true':'false'); renderChart(); }; el.onkeydown = (e)=>{ if (e.key==='Enter' || e.key===' ') { e.preventDefault(); el.click(); } }; return el; };
-    if (colorMode === "lie"){ [ {k:"Fairway",label:"Fairway",cls:"flt-fairway"}, {k:"Rough",label:"Rough",cls:"flt-rough"}, {k:"Sand",label:"Sand",cls:"flt-sand"}, {k:"Recovery",label:"Recovery",cls:"flt-recovery"} ].forEach(({k,label,cls})=> row.appendChild(makeSpan(k,label,cls)) ); }
-    else { [ {k:"d1",label:"10–25 yd",cls:"flt-d1"}, {k:"d2",label:"30–45 yd",cls:"flt-d2"}, {k:"d3",label:"50–65 yd",cls:"flt-d3"} ].forEach(({k,label,cls})=> row.appendChild(makeSpan(k,label,cls)) ); }
+    const row = document.getElementById('dynFilterRow');
+    row.innerHTML = "";
+    if (colorMode === "lie"){
+      ["Fairway","Rough","Sand","Recovery"].forEach(k=>{
+        const span = document.createElement('span');
+        span.className = `flt flt-${k.toLowerCase()} ${activeCats[k] ? "" : "off"}`;
+        span.textContent = k;
+        span.onclick = ()=>{ activeCats[k] = !activeCats[k]; span.classList.toggle('off', !activeCats[k]); renderChart(); };
+        row.appendChild(span);
+      });
+    } else {
+      [{k:"d1",label:"10–25 yd"},{k:"d2",label:"30–45 yd"},{k:"d3",label:"50–65 yd"}].forEach(({k,label})=>{
+        const span = document.createElement('span');
+        span.className = `flt flt-${k} ${activeCats[k] ? "" : "off"}`;
+        span.textContent = label;
+        span.onclick = ()=>{ activeCats[k] = !activeCats[k]; span.classList.toggle('off', !activeCats[k]); renderChart(); };
+        row.appendChild(span);
+      });
+    }
   }
 
-  function bucketForDistance(d){ d = Number(d)||0; if (d>=10 && d<=25) return 'd1'; if (d>=30 && d<=45) return 'd2'; if (d>=50 && d<=65) return 'd3'; return 'd1'; }
-  function colorFor(row){ if (colorMode === 'lie'){ switch((row.lie||"").toLowerCase()){ case 'fairway':return '#7CFC00'; case 'rough':return '#ffa74d'; case 'sand':return '#e8d27c'; case 'recovery':return '#ff5a5a'; default:return '#e8ecf1'; } } else { const b=bucketForDistance(row.dist); return (b==='d1')? '#9cdcfe' : (b==='d2')? '#a6e22e' : '#ffb454'; } }
-
-  const tooltip = document.getElementById('tooltip');
-  function showTip(x,y, text){ tooltip.textContent=text; tooltip.style.left=(x+12)+"px"; tooltip.style.top=(y+12)+"px"; tooltip.classList.remove('hidden'); }
-  function hideTip(){ tooltip.classList.add('hidden'); }
+  function bucketForDistance(d){
+    d = Number(d)||0;
+    if (d>=10 && d<=25) return 'd1';
+    if (d>=30 && d<=45) return 'd2';
+    if (d>=50 && d<=65) return 'd3';
+    return 'd1';
+  }
+  function colorFor(row){
+    if (colorMode === 'lie'){
+      switch((row.lie||"").toLowerCase()){
+        case "fairway":  return "#7CFC00";
+        case "rough":    return "#ffa74d";
+        case "sand":     return "#e8d27c";
+        case "recovery": return "#ff5a5a";
+        default:         return "#e8ecf1";
+      }
+    } else {
+      const b = bucketForDistance(row.dist);
+      return (b==='d1') ? "#9cdcfe" : (b==='d2') ? "#a6e22e" : "#ffb454";
+    }
+  }
 
   function renderChart(){
-    const cv = document.getElementById('chipChart'); if (!cv) return; const ctx = cv.getContext('2d'); const W=cv.width, H=cv.height; ctx.clearRect(0,0,W,H);
-    const pts = saved.filter(r=>{ if (colorMode === "lie") return activeCats[r.lie ?? ""] === true; const b = bucketForDistance(r.dist); return activeCats[b] === true; }).map((r,i)=>({idx:i,x:r.chipX,y:r.chipY,c:colorFor(r),d:r.dist,lie:r.lie,hole:r.hole,date:r.date}));
-    const maxAbs = Math.max(5, ...pts.map(p=>Math.max(Math.abs(p.x), Math.abs(p.y))), 5); const pad=10, scale=(Math.min(W,H)/2 - pad)/(maxAbs||5); const cx=W/2, cy=H/2;
-    ctx.strokeStyle='#2a3138'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(0,cy); ctx.lineTo(W,cy); ctx.stroke(); ctx.beginPath(); ctx.moveTo(cx,0); ctx.lineTo(cx,H); ctx.stroke();
-    ctx.fillStyle='#9aa7b2'; ctx.font='11px system-ui'; for(let t=-maxAbs; t<=maxAbs; t+=5){ const x=cx+t*scale, y=cy-t*scale; ctx.strokeStyle='#2a3138'; ctx.beginPath(); ctx.moveTo(x,cy-3); ctx.lineTo(x,cy+3); ctx.stroke(); ctx.beginPath(); ctx.moveTo(cx-3,y); ctx.lineTo(cx+3,y); ctx.stroke(); if(t!==0){ ctx.fillText(String(t), x-6, cy+14); ctx.fillText(String(t), cx+6, y+3);} }
-    let mx=0,my=0,r=0; if(pts.length){ mx=pts.reduce((s,p)=>s+p.x,0)/pts.length; my=pts.reduce((s,p)=>s+p.y,0)/pts.length; r=Math.sqrt(pts.reduce((s,p)=>s+(p.x-mx)*(p.x-mx)+(p.y-my)*(p.y-my),0)/pts.length); }
-    ctx.strokeStyle='#2ea043'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(cx+mx*scale, cy-my*scale, r*scale, 0, Math.PI*2); ctx.stroke(); ctx.fillStyle='#2ea043'; ctx.beginPath(); ctx.arc(cx+mx*scale, cy-my*scale, 3, 0, Math.PI*2); ctx.fill();
-    const hit=[]; pts.forEach(p=>{ const px=cx+p.x*scale, py=cy-p.y*scale; ctx.beginPath(); ctx.arc(px,py,2.8,0,Math.PI*2); ctx.fillStyle=p.c; ctx.fill(); ctx.lineWidth=.8; ctx.strokeStyle='rgba(255,255,255,.9)'; ctx.stroke(); hit.push({x:px,y:py,r:6,label:`Hole ${p.hole} — ${p.lie} ${p.d}yd\n(${p.x}L/R, ${p.y}S/L)\n${p.date}`}); });
-    cv.onmousemove=(e)=>{ const rect=cv.getBoundingClientRect(); const mx=e.clientX-rect.left, my=e.clientY-rect.top; const h=hit.find(h=> (mx-h.x)**2 + (my-h.y)**2 <= h.r*h.r ); if(h) showTip(e.clientX,e.clientY,h.label); else hideTip(); }; cv.onmouseleave=hideTip;
+    const cv = document.getElementById('chipChart'); if (!cv) return;
+    const ctx = cv.getContext('2d'); const W=cv.width, H=cv.height;
+    ctx.clearRect(0,0,W,H);
+
+    const pts = saved.filter(r=>{
+      if (colorMode === "lie") return activeCats[r.lie ?? ""] === true;
+      const b = bucketForDistance(r.dist);
+      return activeCats[b] === true;
+    }).map(r => ({x:r.chipX, y:r.chipY, c:colorFor(r)}));
+
+    const maxAbs = Math.max(5, ...pts.map(p => Math.max(Math.abs(p.x), Math.abs(p.y))), 5);
+    const pad = 10, scale = (Math.min(W,H)/2 - pad) / (maxAbs || 5);
+    const cx=W/2, cy=H/2;
+
+    ctx.strokeStyle = '#2a3138'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(0,cy); ctx.lineTo(W,cy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx,0); ctx.lineTo(cx,H); ctx.stroke();
+
+    ctx.fillStyle = '#9aa7b2'; ctx.font='11px system-ui';
+    for (let t=-maxAbs; t<=maxAbs; t+=5){
+      const x = cx + t*scale, y = cy - t*scale;
+      ctx.strokeStyle='#2a3138';
+      ctx.beginPath(); ctx.moveTo(x,cy-3); ctx.lineTo(x,cy+3); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx-3,y); ctx.lineTo(cx+3,y); ctx.stroke();
+      if (t!==0){ ctx.fillText(String(t), x-6, cy+14); ctx.fillText(String(t), cx+6, y+3); }
+    }
+
+    let mx=0,my=0,r=0;
+    if (pts.length){
+      mx = pts.reduce((s,p)=>s+p.x,0)/pts.length;
+      my = pts.reduce((s,p)=>s+p.y,0)/pts.length;
+      r  = Math.sqrt(pts.reduce((s,p)=>s+(p.x-mx)*(p.x-mx)+(p.y-my)*(p.y-my),0)/pts.length);
+    }
+    ctx.strokeStyle='#2ea043'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.arc(cx + mx*scale, cy - my*scale, r*scale, 0, Math.PI*2); ctx.stroke();
+    ctx.fillStyle='#2ea043'; ctx.beginPath(); ctx.arc(cx + mx*scale, cy - my*scale, 3, 0, Math.PI*2); ctx.fill();
+
+    pts.forEach(p=>{
+      ctx.beginPath(); ctx.arc(cx + p.x*scale, cy - p.y*scale, 2.8, 0, Math.PI*2);
+      ctx.fillStyle=p.c; ctx.fill(); ctx.lineWidth=.8; ctx.strokeStyle='rgba(255,255,255,.9)'; ctx.stroke();
+    });
   }
 
   // init
