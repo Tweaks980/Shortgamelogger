@@ -66,9 +66,16 @@
   .readout .unit { font-weight:600; font-size:14px; color:var(--text); opacity:.9 }
   .modeTag { display:inline-block; text-align:center; border-radius:999px; padding:6px 10px; border:1px solid var(--border); background:var(--panel-2); font-weight:600; font-size:13px; color:var(--text) }
 
-  /* Put label above the number (center column) */
-  .row.divider-2cols > .field{display:grid;grid-template-columns:36px minmax(0,1fr) 36px;grid-template-rows:auto auto auto;gap:6px 8px;align-items:center}
-  .row.divider-2cols > .field > .subtle{grid-column:2;grid-row:1;justify-self:center}
+  /* Put labels ABOVE the left/right step buttons */
+  .row.divider-2cols > .field{
+    display:grid;
+    grid-template-columns:36px minmax(0,1fr) 36px;
+    grid-template-rows:auto auto auto;
+    gap:6px 8px; align-items:center;
+  }
+  .microlabel{font-size:11px; color:var(--muted); justify-self:center; align-self:end}
+  .ml-left { grid-column:1; grid-row:1; }
+  .ml-right{ grid-column:3; grid-row:1; }
   .row.divider-2cols > .field > .stepper{grid-column:1 / -1;grid-row:2}
   .row.divider-2cols > .field > .modeTag{grid-column:2;grid-row:3;justify-self:center}
 
@@ -105,11 +112,9 @@
   /* Summary at top */
   #summaryBarTop{font-weight:700;font-size:14px;text-align:center}
 
-  /* Putt 1 distance row (tighter pill, extra spacing below) */
+  /* Putt 1 distance row */
   .inlinePuttRow{ display:flex; align-items:center; gap:8px; margin:4px 0 14px 0; }
   .inlinePuttRow .unit{ opacity:.9; font-weight:600 }
-
-  .subhead{ margin-top:6px; font-weight:600; color:var(--muted); }
 
   @media (max-width: 380px){
     .row.divider-2cols > .field{grid-template-columns:32px minmax(0,1fr) 32px;gap:6px}
@@ -169,11 +174,12 @@
     <h2>Chip Result (Direction)</h2>
     <div class="row divider-2cols">
       <div class="field">
-        <div class="subtle">Depth</div>
+        <div class="microlabel ml-left">Short</div>
+        <div class="microlabel ml-right">Long</div>
         <div class="stepper">
           <button class="step" id="depthDown">▼</button>
           <div class="readout">
-            <input id="depthInput" class="readnum" type="text" inputmode="text" pattern="-?\d{1,2}" maxlength="3" value="0" aria-label="Depth signed feet" />
+            <input id="depthInput" class="readnum" type="text" inputmode="text" pattern="-?\\d{1,2}" maxlength="3" value="0" aria-label="Depth signed feet" />
             <span class="unit">ft</span>
           </div>
           <button class="step" id="depthUp">▲</button>
@@ -182,11 +188,12 @@
       </div>
       <div class="vdiv" aria-hidden="true"></div>
       <div class="field">
-        <div class="subtle">Line</div>
+        <div class="microlabel ml-left">Left</div>
+        <div class="microlabel ml-right">Right</div>
         <div class="stepper">
           <button class="step" id="lineLeft">◀</button>
           <div class="readout">
-            <input id="lineInput" class="readnum" type="text" inputmode="text" pattern="-?\d{1,2}" maxlength="3" value="0" aria-label="Line signed feet" />
+            <input id="lineInput" class="readnum" type="text" inputmode="text" pattern="-?\\d{1,2}" maxlength="3" value="0" aria-label="Line signed feet" />
             <span class="unit">ft</span>
           </div>
           <button class="step" id="lineRight">▶</button>
@@ -200,25 +207,20 @@
   <!-- Putt 1 -->
   <section class="panel hidden" id="sectionP1">
     <h2 class="h2-strong-left">Putt 1 (ft)</h2>
-
-    <!-- Smaller pill, no pipes -->
     <div class="inlinePuttRow" aria-label="First putt distance">
-      <div class="input slim p1">
-        <input id="putt1Dist" type="number" min="0" step="1" placeholder="0" inputmode="numeric" />
-      </div>
+      <div class="input slim p1"><input id="putt1Dist" type="number" min="0" step="1" placeholder="0" inputmode="numeric" /></div>
       <span class="unit">ft</span>
     </div>
 
-    <!-- Same heading style as Chip -->
     <h2>Putt Result (Direction)</h2>
-
     <div class="row divider-2cols" style="margin-top:8px;">
       <div class="field">
-        <div class="subtle">Depth</div>
+        <div class="microlabel ml-left">Short</div>
+        <div class="microlabel ml-right">Long</div>
         <div class="stepper">
           <button class="step" id="depthDownP1">▼</button>
           <div class="readout">
-            <input id="depthInputP1" class="readnum" type="text" inputmode="text" pattern="-?\d{1,2}" maxlength="3" value="0" aria-label="Putt 1 depth signed feet" />
+            <input id="depthInputP1" class="readnum" type="text" inputmode="text" pattern="-?\\d{1,2}" maxlength="3" value="0" aria-label="Putt 1 depth signed feet" />
             <span class="unit">ft</span>
           </div>
           <button class="step" id="depthUpP1">▲</button>
@@ -227,11 +229,12 @@
       </div>
       <div class="vdiv" aria-hidden="true"></div>
       <div class="field">
-        <div class="subtle">Line</div>
+        <div class="microlabel ml-left">Left</div>
+        <div class="microlabel ml-right">Right</div>
         <div class="stepper">
           <button class="step" id="lineLeftP1">◀</button>
           <div class="readout">
-            <input id="lineInputP1" class="readnum" type="text" inputmode="text" pattern="-?\d{1,2}" maxlength="3" value="0" aria-label="Putt 1 line signed feet" />
+            <input id="lineInputP1" class="readnum" type="text" inputmode="text" pattern="-?\\d{1,2}" maxlength="3" value="0" aria-label="Putt 1 line signed feet" />
             <span class="unit">ft</span>
           </div>
           <button class="step" id="lineRightP1">▶</button>
@@ -239,7 +242,6 @@
         <div id="lineModeTagP1" class="modeTag">Straight</div>
       </div>
     </div>
-
     <div class="subtle" id="derivedP1" style="margin-top:8px;">Derived leave after P1: —</div>
   </section>
 
