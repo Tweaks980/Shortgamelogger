@@ -20,7 +20,6 @@
   .btn:focus{outline:2px solid #5a9; outline-offset:2px}
   .save{background:var(--accent);border:none;color:#08130a;font-weight:700}
   .btn.full{width:100%; justify-content:center}
-  /* Emphasized chart toggle */
   .btn.chartToggle{background:var(--accent-2); color:#fff; border:none; font-weight:800;
     padding:14px 18px; border-radius:14px; font-size:16px}
 
@@ -28,7 +27,7 @@
   .h2-center-white{color:var(--text); text-align:center;}
   .h2-strong-left{color:var(--text)}
 
-  /* header helper (text-as-trigger) */
+  /* helper bubble */
   .helpwrap{position:relative; display:flex; justify-content:center; align-items:center;}
   .helpbtn{cursor:help}
   .tip{position:absolute; top:100%; left:50%; transform:translateX(-50%);
@@ -51,6 +50,7 @@
   .input.datepill{height:36px; padding:8px 12px; border-radius:12px; width:100%}
   .input.datepill input{appearance:none}
   .input.slim.p1{padding:4px 10px; min-width:0; border-radius:10px; width:auto}
+  .inlinePuttRow { display:flex; align-items:center; gap:8px; margin:4px 0 14px 0; justify-content:center; }
   .inlinePuttRow .p1 input{ width:4ch; text-align:center; font-variant-numeric:tabular-nums; }
   .counter{gap:8px}
   .counter button{width:36px;height:36px;background:var(--btn);color:var(--text);
@@ -72,6 +72,9 @@
   .stack{display:grid;gap:8px}
   .subtle{color:var(--muted);font-size:12px}
 
+  /* small italic note — made smaller/tighter */
+  .subNote{ font-size:11px; font-style:italic; opacity:.9; margin-left:4px; }
+
   /* Steppers */
   .stepper { display:grid; grid-template-columns:36px minmax(0,1fr) 36px; gap:8px; align-items:center; }
   .stepper .step { width:36px; height:36px; background:var(--btn); border:1px solid var(--border); border-radius:10px; font-size:16px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
@@ -80,7 +83,7 @@
   .readout .unit { font-weight:600; font-size:14px; color:var(--text); opacity:.9 }
   .modeTag { display:inline-block; text-align:center; border-radius:999px; padding:6px 10px; border:1px solid var(--border); background:var(--panel-2); font-weight:600; font-size:13px; color:var(--text) }
 
-  /* Micro labels above arrow buttons */
+  /* Micro labels over arrow buttons */
   .row.divider-2cols > .field{
     display:grid;
     grid-template-columns:36px minmax(0,1fr) 36px;
@@ -123,19 +126,7 @@
   .flt-d2 { color:#a6e22e; border-color:#3b5b2b }
   .flt-d3 { color:#ffb454; border-color:#6a4c22 }
 
-  /* Summary at top */
   #summaryBarTop{font-weight:700;font-size:14px;text-align:center}
-
-  /* Putt 1 distance row */
-  .inlinePuttRow{ display:flex; align-items:center; gap:8px; margin:4px 0 14px 0; }
-  .inlinePuttRow .unit{ opacity:.9; font-weight:600 }
-
-  @media (max-width: 380px){
-    .row.divider-2cols > .field{grid-template-columns:32px minmax(0,1fr) 32px;gap:6px}
-    .stepper { grid-template-columns:32px minmax(0,1fr) 32px; gap:6px; }
-    .stepper .step{ width:32px; height:32px }
-    .readout input.readnum{ width:clamp(38px, 22vw, 56px); font-size:18px }
-  }
 </style>
 </head>
 <body>
@@ -144,7 +135,6 @@
   <button class="btn" id="clearBtn">Clear</button>
 </header>
 
-<!-- TOP summary -->
 <section class="wrap panel"><div id="summaryBarTop">Par: 0 | Gross: 0 | Up/Down: 0% | To Par: 0</div></section>
 
 <main class="wrap" id="topOfApp">
@@ -186,7 +176,7 @@
   <!-- Chip result (hidden until Lie chosen) -->
   <section class="panel hidden" id="chipSection">
     <h2 class="h2-center-white helpwrap" id="chipHelpWrap">
-      <span class="helpbtn" id="chipHelpBtn">Input Chip Result from hole</span>
+      <span class="helpbtn" id="chipHelpBtn">Input Chip Result <span class="subNote">(distance from hole)</span></span>
       <span class="tip" id="chipHelpTip">Enter how short/long and which side (L/R) the ball finished from the hole.</span>
     </h2>
     <div class="row divider-2cols">
@@ -223,14 +213,14 @@
 
   <!-- Putt 1 -->
   <section class="panel hidden" id="sectionP1">
-    <h2 class="h2-strong-left">Putt 1 (ft)</h2>
+    <h2 class="h2-center-white">Putt 1</h2>
     <div class="inlinePuttRow" aria-label="First putt distance">
       <div class="input slim p1"><input id="putt1Dist" type="number" min="0" step="1" placeholder="0" inputmode="numeric" /></div>
       <span class="unit">ft</span>
     </div>
 
     <h2 class="h2-center-white helpwrap" id="puttHelpWrap">
-      <span class="helpbtn" id="puttHelpBtn">Input Putt Result from hole</span>
+      <span class="helpbtn" id="puttHelpBtn">Input Putt 1 Result <span class="subNote">(distance from hole)</span></span>
       <span class="tip" id="puttHelpTip">Enter how short/long and which side (L/R) the ball finished after the first putt.</span>
     </h2>
 
@@ -302,12 +292,12 @@
     </table>
   </section>
 
-  <!-- Chart toggle button -->
+  <!-- Chart toggle -->
   <section class="panel">
     <button class="btn full chartToggle" id="toggleChartBtn">Show Dispersion Chart</button>
   </section>
 
-  <!-- Chart + filters (hidden until toggled) -->
+  <!-- Chart + filters -->
   <section class="panel hidden" id="chartPanel">
     <h2 style="display:flex;justify-content:space-between;align-items:center; gap:8px; color:#fff; font-size:16px;">
       <span>Session Dispersion (ft)</span>
@@ -333,7 +323,6 @@
   const activeCats = { Fairway:true, Rough:true, Sand:true, Recovery:true, d1:true, d2:true, d3:true };
   const includeChipInsInUpDown = true;
 
-  // Hole/date
   const holeInput = document.getElementById("hole");
   const dateInput = document.getElementById("date");
   const saveBtn   = document.getElementById("saveBtn");
@@ -349,7 +338,6 @@
   dateInput.value = new Date().toISOString().slice(0,10);
   updateSaveLabel();
 
-  // Distance
   const distButtons = Array.from(document.querySelectorAll("#distanceGrid button"));
   distButtons.forEach(btn=>{
     btn.addEventListener("click", ()=>{
@@ -360,21 +348,19 @@
     });
   });
 
-  // Lie
   const lieButtons = document.querySelectorAll("#lieChips .pill");
   lieButtons.forEach(p=>{
     p.addEventListener("click", ()=>{
       lieButtons.forEach(x=>x.classList.remove("active"));
       p.classList.add("active");
       selectedLie = p.dataset.lie;
-      updateChipVisibility();
+      updateChipVisibility(true);  // show + scroll
       calcAll();
     });
   });
 
-  // ----- Signed steppers — CHIP
-  let depthSigned = 0; // negative = Short, positive = Long
-  let lineSigned  = 0; // negative = Left,  positive = Right
+  // steppers — CHIP
+  let depthSigned = 0, lineSigned  = 0;
   const depthInputEl = document.getElementById('depthInput');
   const lineInputEl  = document.getElementById('lineInput');
   const depthTag   = document.getElementById('depthModeTag');
@@ -402,8 +388,8 @@
   depthInputEl.addEventListener('input', ()=>{ const r = normalizeSignedText(depthInputEl); pendingDepth=r.pending; depthSigned=r.num; if(!r.pending) depthInputEl.value=r.text; updateChipStepperUI(); calcAll(); });
   lineInputEl .addEventListener('input', ()=>{ const r = normalizeSignedText(lineInputEl ); pendingLine=r.pending;  lineSigned =r.num; if(!r.pending) lineInputEl.value=r.text;  updateChipStepperUI(); calcAll(); });
 
-  // ----- Signed steppers — PUTT 1
-  let depthSignedP1 = 0; let lineSignedP1 = 0;
+  // steppers — PUTT 1
+  let depthSignedP1 = 0, lineSignedP1 = 0;
   const depthInputP1 = document.getElementById('depthInputP1');
   const lineInputP1  = document.getElementById('lineInputP1');
   const depthTagP1   = document.getElementById('depthModeTagP1');
@@ -425,7 +411,6 @@
   depthInputP1.addEventListener('input', ()=>{ const r = normalizeSignedText(depthInputP1); pendingDepthP1=r.pending; depthSignedP1=r.num; if(!r.pending) depthInputP1.value=r.text; updateP1StepperUI(); calcAll(); });
   lineInputP1 .addEventListener('input', ()=>{ const r = normalizeSignedText(lineInputP1 ); pendingLineP1=r.pending;  lineSignedP1 =r.num; if(!r.pending) lineInputP1.value=r.text;  updateP1StepperUI(); calcAll(); });
 
-  // Other fields
   const putt1Dist   = document.getElementById("putt1Dist");
   const p2          = document.getElementById("putt2");
   const p3          = document.getElementById("putt3");
@@ -451,8 +436,14 @@
     document.getElementById("sectionP1").classList.toggle("hidden", !chipHasInput);
     document.getElementById("sectionP23").classList.toggle("hidden", !p1HasInput);
   }
-  function updateChipVisibility(){
-    document.getElementById("chipSection").classList.toggle("hidden", !selectedLie);
+  function updateChipVisibility(scrollOnShow=false){
+    const sec = document.getElementById("chipSection");
+    const shouldShow = !!selectedLie;
+    sec.classList.toggle("hidden", !shouldShow);
+    if (shouldShow && scrollOnShow){
+      // slight delay so layout is ready before scrolling
+      setTimeout(()=> sec.scrollIntoView({behavior:'smooth', block:'start'}), 60);
+    }
   }
 
   function calcAll(){
@@ -594,7 +585,6 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
-  // Reset Hole — clears current UI only
   document.getElementById("undoBtn").addEventListener("click", () => {
     clearUISelections();
   });
@@ -626,13 +616,11 @@
     clearUISelections(); renderLog();
     document.getElementById('summaryBarTop').textContent = 'Par: 0 | Gross: 0 | Up/Down: 0% | To Par: 0';
     updateSaveLabel();
-    // Hide chart and reset toggle text
     document.getElementById('chartPanel').classList.add('hidden');
     document.getElementById('toggleChartBtn').textContent = 'Show Dispersion Chart';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
-  // Color toggle & filters
   document.querySelectorAll('#colorModeSeg button').forEach(b=>{
     b.addEventListener('click', ()=>{
       document.querySelectorAll('#colorModeSeg button').forEach(x=>x.classList.remove('active'));
@@ -644,7 +632,6 @@
     Object.keys(activeCats).forEach(k=> activeCats[k] = true); renderFilterRow(); renderChart();
   });
 
-  // Chart show/hide + auto-scroll when opening
   const chartPanel = document.getElementById('chartPanel');
   const toggleChartBtn = document.getElementById('toggleChartBtn');
   toggleChartBtn.addEventListener('click', ()=>{
@@ -660,7 +647,6 @@
     }
   });
 
-  // Helper bubbles: open on header click; close on outside click or second click
   const chipHelpWrap = document.getElementById('chipHelpWrap');
   const chipHelpBtn  = document.getElementById('chipHelpBtn');
   const puttHelpWrap = document.getElementById('puttHelpWrap');
