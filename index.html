@@ -6,7 +6,7 @@
 <title>Par2</title>
 <style>
   :root { --bg:#0f1115; --panel:#1a1f24; --panel-2:#11161b; --text:#e8ecf1;
-    --muted:#9aa7b2; --accent:#2ea043; --btn:#2b3138; --btn-active:#355043;
+    --muted:#9aa7b2; --accent:#2ea043; --accent-2:#3b82f6; --btn:#2b3138; --btn-active:#355043;
     --border:#2a3138; --radius:14px; }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--text);
@@ -19,21 +19,23 @@
     padding:8px 12px;border-radius:10px;cursor:pointer}
   .btn:focus{outline:2px solid #5a9; outline-offset:2px}
   .save{background:var(--accent);border:none;color:#08130a;font-weight:700}
+  .btn.full{width:100%; justify-content:center}
+  /* Emphasized chart toggle */
+  .btn.chartToggle{background:var(--accent-2); color:#fff; border:none; font-weight:800;
+    padding:14px 18px; border-radius:14px; font-size:16px}
 
   h2{margin:0 0 8px 0;font-size:14px;color:var(--muted);font-weight:600}
-  .h2-center-white{color:var(--text); text-align:center;} /* white, centered */
-  .h2-strong-left{color:var(--text)} /* white, left */
+  .h2-center-white{color:var(--text); text-align:center;}
+  .h2-strong-left{color:var(--text)}
 
-  /* small helper bubble on headers */
-  .helpwrap{position:relative; display:flex; justify-content:center; align-items:center; gap:6px}
-  .help{display:inline-flex; width:16px; height:16px; border-radius:50%;
-    background:var(--btn); border:1px solid var(--border); color:var(--text);
-    font-size:12px; line-height:1; align-items:center; justify-content:center; cursor:help}
+  /* header helper (text-as-trigger) */
+  .helpwrap{position:relative; display:flex; justify-content:center; align-items:center;}
+  .helpbtn{cursor:help}
   .tip{position:absolute; top:100%; left:50%; transform:translateX(-50%);
     background:var(--panel-2); border:1px solid var(--border); color:var(--text);
-    padding:8px 10px; border-radius:8px; font-size:12px; width:min(280px,80vw);
+    padding:10px 12px; border-radius:10px; font-size:13px; width:min(300px,84vw);
     margin-top:6px; display:none; z-index:5}
-  .helpwrap:hover .tip, .help:focus + .tip, .helpwrap:focus-within .tip{ display:block; }
+  .helpwrap.open .tip{ display:block; }
 
   .panel{background:var(--panel);padding:12px;margin:10px 0;border-radius:var(--radius);
     border:1px solid var(--border)}
@@ -138,7 +140,7 @@
 </head>
 <body>
 <header class="wrap">
-  <button class="btn" id="exportBtn">Export</button>
+  <button class="btn" id="exportBtn">Export CSV</button>
   <button class="btn" id="clearBtn">Clear</button>
 </header>
 
@@ -181,12 +183,11 @@
     </div>
   </section>
 
-  <!-- Chip result -->
-  <section class="panel" id="chipSection">
-    <h2 class="h2-center-white helpwrap">
-      Chip Result (Distance to Hole)
-      <span class="help" tabindex="0" aria-label="What to enter">?</span>
-      <span class="tip">Enter how short/long and which side (L/R) the ball finished from the hole.</span>
+  <!-- Chip result (hidden until Lie chosen) -->
+  <section class="panel hidden" id="chipSection">
+    <h2 class="h2-center-white helpwrap" id="chipHelpWrap">
+      <span class="helpbtn" id="chipHelpBtn">Input Chip Result from hole</span>
+      <span class="tip" id="chipHelpTip">Enter how short/long and which side (L/R) the ball finished from the hole.</span>
     </h2>
     <div class="row divider-2cols">
       <div class="field">
@@ -228,7 +229,11 @@
       <span class="unit">ft</span>
     </div>
 
-    <h2 class="h2-center-white">Putt Result (Direction)</h2>
+    <h2 class="h2-center-white helpwrap" id="puttHelpWrap">
+      <span class="helpbtn" id="puttHelpBtn">Input Putt Result from hole</span>
+      <span class="tip" id="puttHelpTip">Enter how short/long and which side (L/R) the ball finished after the first putt.</span>
+    </h2>
+
     <div class="row divider-2cols" style="margin-top:8px;">
       <div class="field">
         <div class="microlabel ml-left">Short</div>
@@ -297,9 +302,14 @@
     </table>
   </section>
 
-  <!-- Chart + filters -->
+  <!-- Chart toggle button -->
   <section class="panel">
-    <h2 style="display:flex;justify-content:space-between;align-items:center; gap:8px">
+    <button class="btn full chartToggle" id="toggleChartBtn">Show Dispersion Chart</button>
+  </section>
+
+  <!-- Chart + filters (hidden until toggled) -->
+  <section class="panel hidden" id="chartPanel">
+    <h2 style="display:flex;justify-content:space-between;align-items:center; gap:8px; color:#fff; font-size:16px;">
       <span>Session Dispersion (ft)</span>
       <span class="seg" id="colorModeSeg">
         <button data-mode="lie" class="active">Lie</button>
@@ -357,6 +367,7 @@
       lieButtons.forEach(x=>x.classList.remove("active"));
       p.classList.add("active");
       selectedLie = p.dataset.lie;
+      updateChipVisibility();
       calcAll();
     });
   });
@@ -440,6 +451,9 @@
     document.getElementById("sectionP1").classList.toggle("hidden", !chipHasInput);
     document.getElementById("sectionP23").classList.toggle("hidden", !p1HasInput);
   }
+  function updateChipVisibility(){
+    document.getElementById("chipSection").classList.toggle("hidden", !selectedLie);
+  }
 
   function calcAll(){
     const chip = leaveFromSigned(depthSigned, lineSigned);
@@ -476,6 +490,7 @@
     putt1Dist.value=""; p2.value=""; p3.value="";
     document.getElementById("sectionP1").classList.add("hidden");
     document.getElementById("sectionP23").classList.add("hidden");
+    document.getElementById("chipSection").classList.add("hidden");
     derivedChip.textContent = "Derived leave: —";
     derivedP1.textContent   = "Derived leave after P1: —";
     scoreEl.textContent = "—";
@@ -487,6 +502,7 @@
     if (selectedDist){ const btn = distButtons.find(b=> Number(b.textContent) === selectedDist); if (btn){ btn.classList.add('active'); } }
     selectedLie = r.lie || "";
     if (selectedLie){ document.querySelectorAll('#lieChips .pill').forEach(b=> b.classList.toggle('active', b.dataset.lie===selectedLie)); }
+    updateChipVisibility();
 
     depthSigned = Number(r.chipDepthSigned||0);
     lineSigned  = Number(r.chipLateralSigned||0);
@@ -572,13 +588,13 @@
     if (idx >= 0) saved[idx] = row; else saved.push(row);
 
     renderLog();
-    holeInput.value = hole + 1; // next hole clean
+    holeInput.value = hole + 1;
     updateSaveLabel();
     clearUISelections();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
-  // Reset Hole (was Undo) — just clears current UI, does NOT change the log
+  // Reset Hole — clears current UI only
   document.getElementById("undoBtn").addEventListener("click", () => {
     clearUISelections();
   });
@@ -610,6 +626,9 @@
     clearUISelections(); renderLog();
     document.getElementById('summaryBarTop').textContent = 'Par: 0 | Gross: 0 | Up/Down: 0% | To Par: 0';
     updateSaveLabel();
+    // Hide chart and reset toggle text
+    document.getElementById('chartPanel').classList.add('hidden');
+    document.getElementById('toggleChartBtn').textContent = 'Show Dispersion Chart';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
@@ -624,6 +643,32 @@
   document.getElementById('resetFiltersBtn').addEventListener('click', ()=>{
     Object.keys(activeCats).forEach(k=> activeCats[k] = true); renderFilterRow(); renderChart();
   });
+
+  // Chart show/hide + auto-scroll when opening
+  const chartPanel = document.getElementById('chartPanel');
+  const toggleChartBtn = document.getElementById('toggleChartBtn');
+  toggleChartBtn.addEventListener('click', ()=>{
+    const willShow = chartPanel.classList.contains('hidden');
+    if (willShow){
+      chartPanel.classList.remove('hidden');
+      toggleChartBtn.textContent = 'Hide Dispersion Chart';
+      renderChart();
+      setTimeout(()=> chartPanel.scrollIntoView({behavior:'smooth', block:'start'}), 50);
+    } else {
+      chartPanel.classList.add('hidden');
+      toggleChartBtn.textContent = 'Show Dispersion Chart';
+    }
+  });
+
+  // Helper bubbles: open on header click; close on outside click or second click
+  const chipHelpWrap = document.getElementById('chipHelpWrap');
+  const chipHelpBtn  = document.getElementById('chipHelpBtn');
+  const puttHelpWrap = document.getElementById('puttHelpWrap');
+  const puttHelpBtn  = document.getElementById('puttHelpBtn');
+  function closeAllTips(){ chipHelpWrap.classList.remove('open'); puttHelpWrap.classList.remove('open'); }
+  chipHelpBtn.addEventListener('click', (e)=>{ e.stopPropagation(); const wasOpen=chipHelpWrap.classList.contains('open'); closeAllTips(); if(!wasOpen) chipHelpWrap.classList.add('open'); });
+  puttHelpBtn.addEventListener('click', (e)=>{ e.stopPropagation(); const wasOpen=puttHelpWrap.classList.contains('open'); closeAllTips(); if(!wasOpen) puttHelpWrap.classList.add('open'); });
+  document.addEventListener('click', closeAllTips);
 
   function renderFilterRow(){
     const row = document.getElementById('dynFilterRow');
@@ -715,6 +760,7 @@
 
   // init
   document.querySelectorAll("#lieChips .pill").forEach(x=>x.classList.remove("active"));
+  document.getElementById("chipSection").classList.add("hidden");
   document.getElementById("sectionP1").classList.add("hidden");
   document.getElementById("sectionP23").classList.add("hidden");
   updateChipStepperUI(); updateP1StepperUI();
