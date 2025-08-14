@@ -21,7 +21,8 @@
   .save{background:var(--accent);border:none;color:#08130a;font-weight:700}
 
   h2{margin:0 0 8px 0;font-size:14px;color:var(--muted);font-weight:600}
-  .h2-strong-left{color:var(--text)} /* white, left-aligned */
+  .h2-center-white{color:var(--text); text-align:center;} /* white, centered */
+  .h2-strong-left{color:var(--text)} /* white, left */
 
   .panel{background:var(--panel);padding:12px;margin:10px 0;border-radius:var(--radius);
     border:1px solid var(--border)}
@@ -34,9 +35,12 @@
     padding:10px 12px;color:var(--text);display:inline-flex;align-items:center;justify-content:center}
   .input input{background:transparent;border:none;outline:none;color:var(--text);width:100%;font-size:16px}
   .input.slim{padding:8px 10px; min-width:84px}
-  /* tighter pill for Putt 1 (fits ~2 digits) */
-  .input.slim.p1{padding:4px 8px; min-width:0; border-radius:10px; width:auto}
-  .inlinePuttRow .p1 input{ width:3ch; text-align:center; font-variant-numeric:tabular-nums; }
+  /* Make date pill visually match the hole control height/shape */
+  .input.datepill{height:36px; padding:8px 12px; border-radius:12px; width:100%}
+  .input.datepill input{appearance:none}
+  /* tighter pill for Putt 1 (wider to fit 2–3 digits) */
+  .input.slim.p1{padding:4px 10px; min-width:0; border-radius:10px; width:auto}
+  .inlinePuttRow .p1 input{ width:4ch; text-align:center; font-variant-numeric:tabular-nums; }
   .counter{gap:8px}
   .counter button{width:36px;height:36px;background:var(--btn);color:var(--text);
     border:1px solid var(--border);border-radius:10px}
@@ -66,7 +70,7 @@
   .readout .unit { font-weight:600; font-size:14px; color:var(--text); opacity:.9 }
   .modeTag { display:inline-block; text-align:center; border-radius:999px; padding:6px 10px; border:1px solid var(--border); background:var(--panel-2); font-weight:600; font-size:13px; color:var(--text) }
 
-  /* Put labels ABOVE the left/right step buttons */
+  /* Micro labels above arrow buttons */
   .row.divider-2cols > .field{
     display:grid;
     grid-template-columns:36px minmax(0,1fr) 36px;
@@ -131,13 +135,13 @@
 </header>
 
 <!-- TOP summary -->
-<section class="wrap panel"><div id="summaryBarTop">Par: 0 | Total: 0 | Up/Down: 0% | Over Par: 0</div></section>
+<section class="wrap panel"><div id="summaryBarTop">Par: 0 | Gross: 0 | Up/Down: 0% | To Par: 0</div></section>
 
 <main class="wrap" id="topOfApp">
   <section class="panel">
     <div class="row">
       <div class="field">
-        <h2>Hole</h2>
+        <h2 class="h2-center-white">Hole</h2>
         <div class="counter">
           <button id="holeMinus">−</button>
           <div class="input"><input id="hole" type="number" min="1" value="1" inputmode="numeric" /></div>
@@ -145,14 +149,14 @@
         </div>
       </div>
       <div class="field">
-        <h2>Date</h2>
-        <div class="input"><input id="date" type="date" /></div>
+        <h2 class="h2-center-white">Date</h2>
+        <div class="input datepill"><input id="date" type="date" /></div>
       </div>
     </div>
   </section>
 
   <section class="panel">
-    <h2>Starting Distance (yds)</h2>
+    <h2 class="h2-center-white">Starting Distance (yds)</h2>
     <div id="distanceGrid">
       <button>10</button><button>15</button><button>20</button><button>25</button><button>30</button><button>35</button>
       <button>40</button><button>45</button><button>50</button><button>55</button><button>60</button><button>65</button>
@@ -160,7 +164,7 @@
   </section>
 
   <section class="panel">
-    <h2>Lie</h2>
+    <h2 class="h2-center-white">Lie</h2>
     <div class="chips" id="lieChips">
       <div class="pill" data-lie="Fairway">Fairway</div>
       <div class="pill" data-lie="Rough">Rough</div>
@@ -171,7 +175,7 @@
 
   <!-- Chip result -->
   <section class="panel" id="chipSection">
-    <h2>Chip Result (Direction)</h2>
+    <h2 class="h2-center-white">Chip Result (Direction)</h2>
     <div class="row divider-2cols">
       <div class="field">
         <div class="microlabel ml-left">Short</div>
@@ -212,7 +216,7 @@
       <span class="unit">ft</span>
     </div>
 
-    <h2>Putt Result (Direction)</h2>
+    <h2 class="h2-center-white">Putt Result (Direction)</h2>
     <div class="row divider-2cols" style="margin-top:8px;">
       <div class="field">
         <div class="microlabel ml-left">Short</div>
@@ -504,7 +508,7 @@
     const successes = saved.filter(r => (includeChipInsInUpDown ? r.score <= 2 : r.score === 2)).length;
     const updownPct = attempts ? Math.round((successes/attempts)*100) : 0;
     const over = total - par; const overLabel = over > 0 ? `+${over}` : `${over}`;
-    const sumTxt = `Par: ${par} | Total: ${total} | Up/Down: ${updownPct}% | Over Par: ${overLabel}`;
+    const sumTxt = `Par: ${par} | Gross: ${total} | Up/Down: ${updownPct}% | To Par: ${overLabel}`;
     const sbTop = document.getElementById("summaryBarTop"); if (sbTop) sbTop.textContent = sumTxt;
 
     renderFilterRow(); renderChart();
@@ -587,7 +591,7 @@
     if (!confirm('Clear EVERYTHING? This removes all saved holes and resets the form.')) return;
     saved = []; holeInput.value = 1; dateInput.value = new Date().toISOString().slice(0,10);
     clearUISelections(); renderLog();
-    const sbTop = document.getElementById('summaryBarTop'); if (sbTop) sbTop.textContent = 'Par: 0 | Total: 0 | Up/Down: 0% | Over Par: 0';
+    const sbTop = document.getElementById('summaryBarTop'); if (sbTop) sbTop.textContent = 'Par: 0 | Gross: 0 | Up/Down: 0% | To Par: 0';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
