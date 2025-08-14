@@ -24,6 +24,17 @@
   .h2-center-white{color:var(--text); text-align:center;} /* white, centered */
   .h2-strong-left{color:var(--text)} /* white, left */
 
+  /* small helper bubble on headers */
+  .helpwrap{position:relative; display:flex; justify-content:center; align-items:center; gap:6px}
+  .help{display:inline-flex; width:16px; height:16px; border-radius:50%;
+    background:var(--btn); border:1px solid var(--border); color:var(--text);
+    font-size:12px; line-height:1; align-items:center; justify-content:center; cursor:help}
+  .tip{position:absolute; top:100%; left:50%; transform:translateX(-50%);
+    background:var(--panel-2); border:1px solid var(--border); color:var(--text);
+    padding:8px 10px; border-radius:8px; font-size:12px; width:min(280px,80vw);
+    margin-top:6px; display:none; z-index:5}
+  .helpwrap:hover .tip, .help:focus + .tip, .helpwrap:focus-within .tip{ display:block; }
+
   .panel{background:var(--panel);padding:12px;margin:10px 0;border-radius:var(--radius);
     border:1px solid var(--border)}
   .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -35,10 +46,8 @@
     padding:10px 12px;color:var(--text);display:inline-flex;align-items:center;justify-content:center}
   .input input{background:transparent;border:none;outline:none;color:var(--text);width:100%;font-size:16px}
   .input.slim{padding:8px 10px; min-width:84px}
-  /* Make date pill visually match the hole control height/shape */
   .input.datepill{height:36px; padding:8px 12px; border-radius:12px; width:100%}
   .input.datepill input{appearance:none}
-  /* tighter pill for Putt 1 (wider to fit 2–3 digits) */
   .input.slim.p1{padding:4px 10px; min-width:0; border-radius:10px; width:auto}
   .inlinePuttRow .p1 input{ width:4ch; text-align:center; font-variant-numeric:tabular-nums; }
   .counter{gap:8px}
@@ -48,7 +57,6 @@
   .chips{display:flex;gap:8px;flex-wrap:wrap}
   .pill{padding:10px 12px;border-radius:10px;cursor:pointer; color:var(--muted); border-color:var(--border)}
   .pill.active{outline:2px solid var(--accent)}
-  /* Lie colors when active */
   .pill[data-lie="Fairway"].active  { color:#7CFC00; border-color:#375b37; outline-color:#7CFC00 }
   .pill[data-lie="Rough"].active    { color:#ffa74d; border-color:#6f5131; outline-color:#ffa74d }
   .pill[data-lie="Sand"].active     { color:#e8d27c; border-color:#6a5b2e; outline-color:#e8d27c }
@@ -156,7 +164,7 @@
   </section>
 
   <section class="panel">
-    <h2 class="h2-center-white">Starting Distance (yds)</h2>
+    <h2 class="h2-center-white">Chip Starting Distance (yds)</h2>
     <div id="distanceGrid">
       <button>10</button><button>15</button><button>20</button><button>25</button><button>30</button><button>35</button>
       <button>40</button><button>45</button><button>50</button><button>55</button><button>60</button><button>65</button>
@@ -175,7 +183,11 @@
 
   <!-- Chip result -->
   <section class="panel" id="chipSection">
-    <h2 class="h2-center-white">Chip Result (Direction)</h2>
+    <h2 class="h2-center-white helpwrap">
+      Chip Result (Distance to Hole)
+      <span class="help" tabindex="0" aria-label="What to enter">?</span>
+      <span class="tip">Enter how short/long and which side (L/R) the ball finished from the hole.</span>
+    </h2>
     <div class="row divider-2cols">
       <div class="field">
         <div class="microlabel ml-left">Short</div>
@@ -264,12 +276,12 @@
     </div>
   </section>
 
-  <!-- Save / Undo -->
+  <!-- Save / Reset -->
   <section class="panel footer">
-    <button class="btn save" id="saveBtn">Save Hole</button>
+    <button class="btn save" id="saveBtn">Save Hole: —</button>
     <div class="scoreline"><strong>Score:</strong> <span id="score">—</span></div>
     <div></div>
-    <button class="btn undo" id="undoBtn">Undo</button>
+    <button class="btn undo" id="undoBtn">Reset Hole</button>
   </section>
 
   <!-- Log -->
@@ -314,10 +326,18 @@
   // Hole/date
   const holeInput = document.getElementById("hole");
   const dateInput = document.getElementById("date");
+  const saveBtn   = document.getElementById("saveBtn");
+
+  function updateSaveLabel(){
+    const n = parseInt(holeInput.value||"",10);
+    saveBtn.textContent = `Save Hole: ${Number.isFinite(n) && n>0 ? n : "—"}`;
+  }
+
   document.getElementById("holeMinus").onclick = () => { holeInput.value = Math.max(1, parseInt(holeInput.value||"1")-1); onHoleChange(); };
   document.getElementById("holePlus").onclick  = () => { holeInput.value = parseInt(holeInput.value||"1")+1; onHoleChange(); };
   holeInput.addEventListener('change', onHoleChange);
   dateInput.value = new Date().toISOString().slice(0,10);
+  updateSaveLabel();
 
   // Distance
   const distButtons = Array.from(document.querySelectorAll("#distanceGrid button"));
@@ -344,8 +364,8 @@
   // ----- Signed steppers — CHIP
   let depthSigned = 0; // negative = Short, positive = Long
   let lineSigned  = 0; // negative = Left,  positive = Right
-  const depthInput = document.getElementById('depthInput');
-  const lineInput  = document.getElementById('lineInput');
+  const depthInputEl = document.getElementById('depthInput');
+  const lineInputEl  = document.getElementById('lineInput');
   const depthTag   = document.getElementById('depthModeTag');
   const lineTag    = document.getElementById('lineModeTag');
 
@@ -357,8 +377,8 @@
     return {pending:false, num:n, text:String(n)};
   }
   function updateChipStepperUI(){
-    if (!pendingDepth) depthInput.value = String(depthSigned);
-    if (!pendingLine)  lineInput.value  = String(lineSigned);
+    if (!pendingDepth) depthInputEl.value = String(depthSigned);
+    if (!pendingLine)  lineInputEl.value  = String(lineSigned);
     depthTag.textContent = depthSigned<0? 'Short' : depthSigned>0? 'Long' : 'Exact';
     lineTag.textContent  = lineSigned<0 ? 'Left'  : lineSigned>0 ? 'Right': 'Straight';
   }
@@ -366,10 +386,10 @@
   document.getElementById('depthUp').onclick   = ()=>{ pendingDepth=false; depthSigned = clamp(depthSigned + 1, -99, 99); updateChipStepperUI(); calcAll(); };
   document.getElementById('lineLeft').onclick  = ()=>{ pendingLine=false;  lineSigned  = clamp(lineSigned  - 1, -99, 99); updateChipStepperUI(); calcAll(); };
   document.getElementById('lineRight').onclick = ()=>{ pendingLine=false;  lineSigned  = clamp(lineSigned  + 1, -99, 99); updateChipStepperUI(); calcAll(); };
-  depthInput.addEventListener('focus', ()=> depthInput.select());
-  lineInput .addEventListener('focus', ()=> lineInput.select());
-  depthInput.addEventListener('input', ()=>{ const r = normalizeSignedText(depthInput); pendingDepth=r.pending; depthSigned=r.num; if(!r.pending) depthInput.value=r.text; updateChipStepperUI(); calcAll(); });
-  lineInput .addEventListener('input', ()=>{ const r = normalizeSignedText(lineInput ); pendingLine=r.pending;  lineSigned =r.num; if(!r.pending) lineInput.value=r.text;  updateChipStepperUI(); calcAll(); });
+  depthInputEl.addEventListener('focus', ()=> depthInputEl.select());
+  lineInputEl .addEventListener('focus', ()=> lineInputEl.select());
+  depthInputEl.addEventListener('input', ()=>{ const r = normalizeSignedText(depthInputEl); pendingDepth=r.pending; depthSigned=r.num; if(!r.pending) depthInputEl.value=r.text; updateChipStepperUI(); calcAll(); });
+  lineInputEl .addEventListener('input', ()=>{ const r = normalizeSignedText(lineInputEl ); pendingLine=r.pending;  lineSigned =r.num; if(!r.pending) lineInputEl.value=r.text;  updateChipStepperUI(); calcAll(); });
 
   // ----- Signed steppers — PUTT 1
   let depthSignedP1 = 0; let lineSignedP1 = 0;
@@ -486,7 +506,7 @@
     calcAll();
   }
   function findSavedByHole(h){ const list = saved.filter(x => Number(x.hole) === Number(h)); return list.length ? list[list.length-1] : null; }
-  function onHoleChange(){ const h = parseInt(holeInput.value || '1', 10); const rec = findSavedByHole(h); if (rec) applyRowToUI(rec); else clearUISelections(); }
+  function onHoleChange(){ const h = parseInt(holeInput.value || '1', 10); const rec = findSavedByHole(h); if (rec) applyRowToUI(rec); else clearUISelections(); updateSaveLabel(); }
 
   function renderLog(){
     const tbody = document.getElementById("logBody");
@@ -524,7 +544,7 @@
   }
 
   document.getElementById("saveBtn").addEventListener("click", () => {
-    if (!selectedDist || !selectedLie){ alert('Please select a Starting Distance and a Lie before saving.'); return; }
+    if (!selectedDist || !selectedLie){ alert('Please select a Chip Starting Distance and a Lie before saving.'); return; }
     const hole = parseInt(holeInput.value||"1",10);
     const date = dateInput.value || new Date().toISOString().slice(0,10);
 
@@ -553,17 +573,14 @@
 
     renderLog();
     holeInput.value = hole + 1; // next hole clean
+    updateSaveLabel();
     clearUISelections();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
+  // Reset Hole (was Undo) — just clears current UI, does NOT change the log
   document.getElementById("undoBtn").addEventListener("click", () => {
-    if (!saved.length) return;
-    saved.pop();
-    const last = saved[saved.length-1];
-    holeInput.value = last ? last.hole : 1;
-    renderLog();
-    onHoleChange();
+    clearUISelections();
   });
 
   document.getElementById("exportBtn").addEventListener("click", () => {
@@ -591,7 +608,8 @@
     if (!confirm('Clear EVERYTHING? This removes all saved holes and resets the form.')) return;
     saved = []; holeInput.value = 1; dateInput.value = new Date().toISOString().slice(0,10);
     clearUISelections(); renderLog();
-    const sbTop = document.getElementById('summaryBarTop'); if (sbTop) sbTop.textContent = 'Par: 0 | Gross: 0 | Up/Down: 0% | To Par: 0';
+    document.getElementById('summaryBarTop').textContent = 'Par: 0 | Gross: 0 | Up/Down: 0% | To Par: 0';
+    updateSaveLabel();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
