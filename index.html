@@ -135,13 +135,6 @@
 
   #summaryBarTop{font-weight:700;font-size:14px;text-align:center}
 
-  /* Toast */
-  .toast{position:fixed; left:50%; bottom:18px; transform:translateX(-50%);
-    background:rgba(30,35,40,.96); color:#fff; padding:10px 14px; border-radius:12px;
-    border:1px solid var(--border); font-weight:700; font-size:14px; opacity:0;
-    pointer-events:none; transition:opacity .18s, transform .18s; z-index:50}
-  .toast.show{opacity:1; transform:translateX(-50%) translateY(-2px)}
-
   @media (max-width: 380px){
     .row.divider-2cols > .field{grid-template-columns:32px minmax(0,1fr) 32px;gap:6px}
     .stepper { grid-template-columns:32px minmax(0,1fr) 32px; gap:6px; }
@@ -341,14 +334,10 @@
     <div class="filterbar subtle" id="dynFilterRow"></div>
     <div style="display:flex;justify-content:space-between;margin-top:8px;flex-wrap:wrap;gap:8px;">
       <button class="rowbtn" id="exportChartBtn">Export Chart PNG</button>
-      <button class="rowbtn" id="exportPanelJpgBtn">Export Panel JPG</button>
       <button class="rowbtn" id="resetFiltersBtn">Reset filters</button>
     </div>
   </section>
 </main>
-
-<!-- Toast -->
-<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
   const r0 = (n) => Math.round(Number(n) || 0);
@@ -362,13 +351,6 @@
   const holeInput = document.getElementById("hole");
   const dateInput = document.getElementById("date");
   const saveBtn   = document.getElementById("saveBtn");
-  const toastEl   = document.getElementById("toast");
-
-  function showToast(msg){
-    toastEl.textContent = msg;
-    toastEl.classList.add('show');
-    setTimeout(()=> toastEl.classList.remove('show'), 1300);
-  }
 
   function updateSaveLabel(){
     const n = parseInt(holeInput.value||"",10);
@@ -399,7 +381,6 @@
         distButtons.forEach(b=>b.classList.remove("active"));
         btn.classList.add("active");
         selectedDist = val;
-        // If a lie is already chosen and chip section visible, focus it
         if (selectedLie && !document.getElementById('chipSection').classList.contains('hidden')){
           smoothFocus(document.getElementById('chipSection'));
         }
@@ -638,7 +619,9 @@
     lieButtons.forEach(x=>x.classList.remove("active")); selectedLie = "";
     depthSigned=0; lineSigned=0; pendingDepth=false; pendingLine=false; updateChipStepperUI();
     depthSignedP1=0; lineSignedP1=0; pendingDepthP1=false; pendingLineP1=false; updateP1StepperUI();
-    putt1Dist.value=""; p2.value=""; p3.value="";
+    document.getElementById("putt1Dist").value="";
+    document.getElementById("putt2").value="";
+    document.getElementById("putt3").value="";
     document.getElementById("chipSection").classList.add("hidden");
     document.getElementById("sectionP1").classList.add("hidden");
     document.getElementById("sectionP23").classList.add("hidden");
@@ -661,9 +644,9 @@
     lineSignedP1  = Number(r.p1LateralSigned||0);
     updateP1StepperUI();
 
-    putt1Dist.value = r.p1 || '';
-    p2.value = r.p2 || '';
-    p3.value = r.p3 || '';
+    document.getElementById("putt1Dist").value = r.p1 || '';
+    document.getElementById("putt2").value = r.p2 || '';
+    document.getElementById("putt3").value = r.p3 || '';
 
     const chipHasInput = (Math.abs(depthSigned) || Math.abs(lineSigned)) > 0;
     const p1HasInput   = (Math.abs(depthSignedP1) || Math.abs(lineSignedP1)) > 0;
@@ -746,7 +729,6 @@
     if (idx >= 0) saved[idx] = row; else saved.push(row);
 
     renderLog();
-    showToast(`Saved hole ${hole}`);
     holeInput.value = hole + 1;
     updateSaveLabel();
     clearUISelections();
@@ -755,7 +737,7 @@
 
   document.getElementById("undoBtn").addEventListener("click", () => {
     clearUISelections();
-    window.scrollTo({ top: 0, behavior: 'smooth' });   // scroll to top after reset hole
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
   document.getElementById("exportBtn").addEventListener("click", () => {
@@ -790,110 +772,6 @@
       win.document.close();
     } else {
       location.href = dataUrl;
-    }
-  });
-
-  // Chart export JPG (whole panel: header + bg + filters + chart)
-  document.getElementById('exportPanelJpgBtn').addEventListener('click', ()=>{
-    const panel = document.getElementById('chartPanel');
-    const chart = document.getElementById('chipChart');
-    if (!panel || !chart) return;
-
-    const dpr = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
-    const pad = 16, lineH = 18, pillGap = 8, pillPadX = 10, pillPadY = 6, radius = 10;
-
-    const W = panel.clientWidth;
-    const chartH = chart.height;
-    const headerH = 26 + 8; // title + spacing
-    const filters = Array.from(document.getElementById('dynFilterRow').children);
-    // estimate filter height
-    let filterRows = 1, rowW = 0;
-    filters.forEach(el=>{
-      const text = el.textContent.trim();
-      const est = (text.length * 7) + pillPadX*2 + 2 /*border*/ + pillGap;
-      if (rowW + est > W - pad*2){ filterRows++; rowW = est; } else { rowW += est; }
-    });
-    const filterH = filterRows * (lineH + pillPadY*2 + pillGap) + 6;
-
-    const H = headerH + chartH + filterH + pad*2;
-
-    const canvas = document.createElement('canvas');
-    canvas.width  = Math.floor(W * dpr);
-    canvas.height = Math.floor(H * dpr);
-    const ctx = canvas.getContext('2d');
-    ctx.scale(dpr, dpr);
-
-    // background (panel)
-    const panelBg = getComputedStyle(panel).backgroundColor || '#1a1f24';
-    ctx.fillStyle = panelBg;
-    ctx.fillRect(0, 0, W, H);
-
-    // header text
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '16px system-ui, -apple-system, Segoe UI, Roboto, Arial';
-    ctx.textBaseline = 'top';
-    ctx.fillText('Session Dispersion (ft)  —  Color by ' + (colorMode==='lie' ? 'Lie' : 'Distance'), pad, pad);
-
-    // chart image
-    const chartURL = chart.toDataURL('image/png');
-    const img = new Image();
-    img.onload = ()=>{
-      ctx.drawImage(img, (W - chart.width)/2, pad + headerH, chart.width, chart.height);
-
-      // filters
-      let x = pad, y = pad + headerH + chartH + 8;
-      ctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto, Arial';
-      filters.forEach(el=>{
-        const label = el.textContent.trim();
-        const active = !el.classList.contains('off');
-        // color from class
-        const cls = Array.from(el.classList).find(c=>/^flt-/.test(c)) || '';
-        const colorMap = {
-          'flt-fairway':'#7CFC00','flt-rough':'#ffa74d','flt-sand':'#e8d27c','flt-recovery':'#ff5a5a',
-          'flt-d1':'#9cdcfe','flt-d2':'#a6e22e','flt-d3':'#ffb454'
-        };
-        const stroke = colorMap[cls] || '#9aa7b2';
-        const textW = ctx.measureText(label).width;
-        const pillW = Math.ceil(textW + pillPadX*2);
-        const pillH = lineH + pillPadY*2;
-
-        if (x + pillW > W - pad) { x = pad; y += pillH + pillGap; }
-
-        // rounded rect
-        ctx.save();
-        roundRect(ctx, x, y, pillW, pillH, radius);
-        ctx.strokeStyle = stroke;
-        ctx.globalAlpha = active ? 1 : 0.45;
-        ctx.stroke();
-        ctx.globalAlpha = 1;
-        ctx.restore();
-
-        // text
-        ctx.fillStyle = stroke;
-        ctx.fillText(label, x + pillPadX, y + pillPadY);
-        x += pillW + pillGap;
-      });
-
-      const jpg = canvas.toDataURL('image/jpeg', 0.92);
-      const win = window.open('', '_blank');
-      if (win) {
-        win.document.write('<!doctype html><html><head><title>Dispersion Panel</title><meta name="viewport" content="width=device-width, initial-scale=1"/></head><body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;height:100vh;"><img alt="Dispersion Panel" style="max-width:100vw;max-height:100vh" src="'+jpg+'"/></body></html>');
-        win.document.close();
-      } else {
-        location.href = jpg;
-      }
-    };
-    img.src = chartURL;
-
-    function roundRect(ctx,x,y,w,h,r){
-      const rr = Math.min(r, w/2, h/2);
-      ctx.beginPath();
-      ctx.moveTo(x+rr, y);
-      ctx.arcTo(x+w, y, x+w, y+h, rr);
-      ctx.arcTo(x+w, y+h, x, y+h, rr);
-      ctx.arcTo(x, y+h, x, y, rr);
-      ctx.arcTo(x, y, x+w, y, rr);
-      ctx.closePath();
     }
   });
 
