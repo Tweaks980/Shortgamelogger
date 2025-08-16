@@ -3,31 +3,34 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Par2</title>
+<title>Par2 – Editor + Stats/Trends (Single File)</title>
+
+<!-- ======== EDITOR (DARK) THEME ======== -->
 <style>
-  :root { --bg:#0f1115; --panel:#1a1f24; --panel-2:#11161b; --text:#e8ecf1;
+  :root {
+    --bg:#0f1115; --panel:#1a1f24; --panel-2:#11161b; --text:#e8ecf1;
     --muted:#9aa7b2; --accent:#2ea043; --accent-2:#3b82f6; --btn:#2b3138; --btn-active:#355043;
-    --border:#2a3138; --radius:14px; }
+    --border:#2a3138; --radius:14px;
+  }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--text);
     font-family:-apple-system,BlinkMacSystemFont,Inter,Arial,sans-serif}
   .wrap{max-width:420px;margin:0 auto;padding:12px}
 
-  header{display:flex;gap:8px;padding:10px;border-bottom:1px solid var(--border);
+  header.editorbar{display:flex;gap:8px;padding:10px;border-bottom:1px solid var(--border);
     position:sticky;top:0;background:rgba(15,17,21,.95);backdrop-filter:blur(8px);z-index:4}
   .btn{background:var(--btn);color:var(--text);border:1px solid var(--border);
-    padding:8px 12px;border-radius:10px;cursor:pointer}
+    padding:8px 12px;border-radius:10px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
   .btn:focus{outline:2px solid #5a9; outline-offset:2px}
   .save{background:var(--accent);border:none;color:#08130a;font-weight:700}
   .btn.full{width:100%; justify-content:center}
   .btn.chartToggle{background:var(--accent-2); color:#fff; border:none; font-weight:800;
     padding:14px 18px; border-radius:14px; font-size:16px}
+  .hidden{display:none}
 
   h2{margin:0 0 8px 0;font-size:14px;color:var(--muted);font-weight:600}
   .h2-center-white{color:var(--text); text-align:center;}
-  .h2-strong-left{color:var(--text)}
 
-  /* helper bubble */
   .helpwrap{position:relative; display:flex; justify-content:center; align-items:center;}
   .helpbtn{cursor:help}
   .tip{position:absolute; top:100%; left:50%; transform:translateX(-50%);
@@ -48,7 +51,6 @@
   .input input{background:transparent;border:none;outline:none;color:var(--text);width:100%;font-size:16px}
   .input.slim{padding:8px 10px; min-width:84px}
   .input.datepill{height:36px; padding:8px 12px; border-radius:12px; width:100%}
-  .input.datepill input{appearance:none}
   .input.slim.p1{padding:4px 10px; min-width:0; border-radius:10px; width:auto}
   .inlinePuttRow { display:flex; align-items:center; gap:8px; margin:4px 0 14px 0; justify-content:center; }
   .inlinePuttRow .p1 input{ width:5ch; text-align:center; font-variant-numeric:tabular-nums; }
@@ -59,7 +61,6 @@
   .chips{display:flex;gap:8px;flex-wrap:wrap}
   .pill{padding:10px 12px;border-radius:10px;cursor:pointer; color:var(--muted); border-color:var(--border)}
   .pill.active{outline:2px solid var(--accent)}
-  /* Lie colors when active */
   .pill[data-lie="Fairway"].active  { color:#7CFC00; border-color:#375b37; outline-color:#7CFC00 }
   .pill[data-lie="Rough"].active    { color:#ffa74d; border-color:#6f5131; outline-color:#ffa74d }
   .pill[data-lie="Sand"].active     { color:#e8d27c; border-color:#6a5b2e; outline-color:#e8d27c }
@@ -68,14 +69,11 @@
   #distanceGrid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
   #distanceGrid button{background:var(--btn);color:var(--text);border:1px solid var(--border);
     padding:6px;border-radius:9px;min-height:34px;font-size:13px}
-  /* Tight outline like Lie pills */
   #distanceGrid button.active{background:var(--btn-active);border-color:#3f6f5d;outline:2px solid var(--accent); outline-offset:1px}
 
-  .stack{display:grid;gap:8px}
   .subtle{color:var(--muted);font-size:12px}
   .subNote{ font-size:11px; font-style:italic; opacity:.9; margin-left:4px; }
 
-  /* Steppers */
   .stepper { display:grid; grid-template-columns:36px minmax(0,1fr) 36px; gap:8px; align-items:center; }
   .stepper .step { width:36px; height:36px; background:var(--btn); border:1px solid var(--border); border-radius:10px; font-size:16px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
   .readout { display:flex; align-items:center; justify-content:center; gap:6px; font-weight:800; font-size:20px; }
@@ -83,7 +81,6 @@
   .readout .unit { font-weight:600; font-size:14px; color:var(--text); opacity:.9 }
   .modeTag { display:inline-block; text-align:center; border-radius:999px; padding:6px 10px; border:1px solid var(--border); background:var(--panel-2); font-weight:600; font-size:13px; color:var(--text) }
 
-  /* Micro labels over arrow buttons */
   .row.divider-2cols > .field{
     display:grid;
     grid-template-columns:36px minmax(0,1fr) 36px;
@@ -96,11 +93,9 @@
   .row.divider-2cols > .field > .stepper{grid-column:1 / -1;grid-row:2}
   .row.divider-2cols > .field > .modeTag{grid-column:2;grid-row:3;justify-self:center}
 
-  /* Tiny cap hint */
   .capHint{font-size:11px; color:var(--muted); text-align:center; opacity:0; transition:opacity .15s; height:0; overflow:hidden}
   .capHint.show{opacity:1; height:auto; margin-top:4px}
 
-  /* Footer buttons */
   .footer{display:grid;grid-template-columns:auto auto 1fr auto;gap:10px;align-items:center}
   .footer .save {padding:12px 18px; font-size:16px; border-radius:12px; min-width:130px;}
   .footer .scoreline{font-weight:600}
@@ -110,14 +105,9 @@
   th,td{padding:10px 8px;border-bottom:1px solid var(--border);text-align:left;color:var(--text)}
   th{color:#fff;font-weight:600}
   .tight th,.tight td{padding:8px}
-  .hidden{display:none}
   .score-cell{white-space:nowrap}
   .rowbtn{background:var(--btn);border:1px solid var(--border);border-radius:6px;padding:0 4px;cursor:pointer;font-size:11px;line-height:1;margin-left:6px}
 
-  /* No row tap-to-edit */
-  tbody tr{cursor:default}
-
-  /* Color toggle + filters */
   .seg {display:inline-flex; border:1px solid var(--border); border-radius:10px; overflow:hidden}
   .seg button{background:var(--panel-2); color:var(--text); padding:6px 10px; border:none; cursor:pointer}
   .seg button.active{background:var(--btn-active)}
@@ -142,204 +132,436 @@
     .readout input.readnum{ width:clamp(38px, 22vw, 56px); font-size:18px }
   }
 </style>
+
+<!-- ======== STATS/TRENDS (LIGHT) THEME – scoped ======== -->
+<style>
+  #view-trends{background:#f7f9fc;color:#0b1220}
+  #view-trends .twrap{max-width:420px; margin:0 auto; padding:14px}
+  #view-trends .tbar{display:flex; gap:8px; align-items:center; margin:8px 14px}
+  #view-trends .tbtn{appearance:none; border:1px solid #e6ebf1; background:#fff; color:#0b1220; padding:8px 12px; border-radius:10px; font-weight:700; cursor:pointer; text-decoration:none}
+  #view-trends .tbtn.primary{ background:#2563eb; color:#fff; border-color:transparent }
+  #view-trends .grow{flex:1}
+
+  #view-trends .tseg{display:flex; gap:8px; background:#eef2f7; border:1px solid #e6ebf1; padding:6px; border-radius:999px; justify-content:center; position:sticky; top:0; z-index:5}
+  #view-trends .tseg button{appearance:none; border:none; background:transparent; padding:8px 14px; border-radius:999px; font-weight:800; color:#334155; cursor:pointer}
+  #view-trends .tseg button.active{background:#fff; color:#2563eb; box-shadow:0 1px 2px rgba(0,0,0,.06)}
+
+  #view-trends .kpis{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:14px 0}
+  #view-trends .kpi{background:#fff; border:1px solid #e6ebf1; border-radius:16px; padding:14px}
+  #view-trends .kpi .big{font-size:40px; font-weight:800; line-height:1; letter-spacing:-.02em}
+  #view-trends .kpi .label{color:#6b7280; margin-top:6px; font-weight:600}
+
+  /* Smaller lie pills to fit one line */
+  #view-trends .chips{display:flex; gap:6px; flex-wrap:nowrap; overflow-x:auto; margin-bottom:12px}
+  #view-trends .chip{padding:4px 8px; border:1px solid #e6ebf1; border-radius:999px; background:#f4f7fb; color:#334155; font-weight:700; cursor:pointer; font-size:12px; white-space:nowrap}
+  #view-trends .chip.active{background:#fff; color:#0f172a; box-shadow:0 1px 2px rgba(0,0,0,.06)}
+
+  #view-trends .card{background:#fff; border:1px solid #e6ebf1; border-radius:16px; overflow:hidden; margin-top:12px}
+  #view-trends table{width:100%; border-collapse:separate; border-spacing:0}
+  #view-trends th,#view-trends td{padding:14px 12px; text-align:left}
+  #view-trends thead th{background:#f3f6fb; color:#1f2937; font-weight:800; font-size:14px}
+  #view-trends tbody td{border-top:1px solid #e6ebf1; font-weight:700; color:#0b1220} /* ensure black body text */
+
+  /* Force previously color-coded cells to black */
+  #view-trends .right{text-align:right}
+  #view-trends .neg, #view-trends .pos, #view-trends .avg.good, #view-trends .avg.bad{ color:#0b1220 !important }
+
+  #view-trends .notice{font-size:12px; color:#6b7280; margin-top:8px}
+</style>
 </head>
+
 <body>
-<header class="wrap">
-  <button class="btn" id="exportBtn">Export CSV</button>
-  <button class="btn" id="clearBtn">Clear</button>
-</header>
+<!-- ========================= VIEW SWITCHER ========================= -->
+<div id="view-editor">
+  <header class="wrap editorbar">
+    <button class="btn" id="exportBtn">Export CSV</button>
+    <button class="btn" id="clearBtn">Clear</button>
+    <button class="btn" id="saveSessionBtn" title="Save current session to Stats/Trends">Save Session Stats</button>
+    <button class="btn" id="goTrendsBtn" title="Open Stats/Trends">Stats/Trends</button>
+  </header>
 
-<section class="wrap panel"><div id="summaryBarTop">Par: 0 | Gross: 0 | Up/Down: 0% | To Par: 0</div></section>
+  <section class="wrap panel"><div id="summaryBarTop">Par: 0 | Gross: 0 | Up/Down: 0% | To Par: 0</div></section>
 
-<main class="wrap" id="topOfApp">
-  <section class="panel">
-    <div class="row">
-      <div class="field">
-        <h2 class="h2-center-white">Hole</h2>
-        <div class="counter">
-          <button id="holeMinus">−</button>
-          <div class="input"><input id="hole" type="number" min="1" value="1" inputmode="numeric" /></div>
-          <button id="holePlus">+</button>
-        </div>
-      </div>
-      <div class="field">
-        <h2 class="h2-center-white">Date</h2>
-        <div class="input datepill"><input id="date" type="date" /></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="panel">
-    <h2 class="h2-center-white">Chip Starting Distance (yds)</h2>
-    <div id="distanceGrid">
-      <button>10</button><button>15</button><button>20</button><button>25</button><button>30</button><button>35</button>
-      <button>40</button><button>45</button><button>50</button><button>55</button><button>60</button><button>65</button>
-    </div>
-  </section>
-
-  <section class="panel">
-    <h2 class="h2-center-white">Lie</h2>
-    <div class="chips" id="lieChips">
-      <div class="pill" data-lie="Fairway">Fairway</div>
-      <div class="pill" data-lie="Rough">Rough</div>
-      <div class="pill" data-lie="Sand">Sand</div>
-      <div class="pill" data-lie="Recovery">Recovery</div>
-    </div>
-  </section>
-
-  <!-- Chip result (hidden until Lie chosen) -->
-  <section class="panel hidden" id="chipSection">
-    <h2 class="h2-center-white helpwrap" id="chipHelpWrap">
-      <span class="helpbtn" id="chipHelpBtn">Input Chip Result <span class="subNote">(distance from hole)</span></span>
-      <span class="tip" id="chipHelpTip">Enter how short/long and which side (L/R) the ball finished from the hole.</span>
-    </h2>
-    <div class="row divider-2cols">
-      <div class="field">
-        <div class="microlabel ml-left">Short</div>
-        <div class="microlabel ml-right">Long</div>
-        <div class="stepper">
-          <button class="step" id="depthDown">▼</button>
-          <div class="readout">
-            <input id="depthInput" class="readnum" type="text" inputmode="text" pattern="-?\\d{1,2}" maxlength="3" value="0" aria-label="Depth signed feet" />
-            <span class="unit">ft</span>
+  <main class="wrap" id="topOfApp">
+    <section class="panel">
+      <div class="row">
+        <div class="field">
+          <h2 class="h2-center-white">Hole</h2>
+          <div class="counter">
+            <button id="holeMinus">−</button>
+            <div class="input"><input id="hole" type="number" min="1" value="1" inputmode="numeric" /></div>
+            <button id="holePlus">+</button>
           </div>
-          <button class="step" id="depthUp">▲</button>
         </div>
-        <div id="depthModeTag" class="modeTag">Exact</div>
-        <div class="capHint" id="capHintDepthChip">Capped at ±99</div>
+        <div class="field">
+          <h2 class="h2-center-white">Date</h2>
+          <div class="input datepill"><input id="date" type="date" /></div>
+        </div>
       </div>
-      <div class="vdiv" aria-hidden="true"></div>
-      <div class="field">
-        <div class="microlabel ml-left">Left</div>
-        <div class="microlabel ml-right">Right</div>
-        <div class="stepper">
-          <button class="step" id="lineLeft">◀</button>
-          <div class="readout">
-            <input id="lineInput" class="readnum" type="text" inputmode="text" pattern="-?\\d{1,2}" maxlength="3" value="0" aria-label="Line signed feet" />
-            <span class="unit">ft</span>
+    </section>
+
+    <section class="panel">
+      <h2 class="h2-center-white">Chip Starting Distance (yds)</h2>
+      <div id="distanceGrid">
+        <button>10</button><button>15</button><button>20</button><button>25</button><button>30</button><button>35</button>
+        <button>40</button><button>45</button><button>50</button><button>55</button><button>60</button><button>65</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 class="h2-center-white">Lie</h2>
+      <div class="chips" id="lieChips">
+        <div class="pill" data-lie="Fairway">Fairway</div>
+        <div class="pill" data-lie="Rough">Rough</div>
+        <div class="pill" data-lie="Sand">Sand</div>
+        <div class="pill" data-lie="Recovery">Recovery</div>
+      </div>
+    </section>
+
+    <!-- Chip result (hidden until Lie chosen) -->
+    <section class="panel hidden" id="chipSection">
+      <h2 class="h2-center-white helpwrap" id="chipHelpWrap">
+        <span class="helpbtn" id="chipHelpBtn">Input Chip Result <span class="subNote">(distance from hole)</span></span>
+        <span class="tip" id="chipHelpTip">Enter how short/long and which side (L/R) the ball finished from the hole.</span>
+      </h2>
+      <div class="row divider-2cols">
+        <div class="field">
+          <div class="microlabel ml-left">Short</div>
+          <div class="microlabel ml-right">Long</div>
+          <div class="stepper">
+            <button class="step" id="depthDown">▼</button>
+            <div class="readout">
+              <input id="depthInput" class="readnum" type="text" inputmode="text" pattern="-?\\d{1,2}" maxlength="3" value="0" aria-label="Depth signed feet" />
+              <span class="unit">ft</span>
+            </div>
+            <button class="step" id="depthUp">▲</button>
           </div>
-          <button class="step" id="lineRight">▶</button>
+          <div id="depthModeTag" class="modeTag">Exact</div>
+          <div class="capHint" id="capHintDepthChip">Capped at ±99</div>
         </div>
-        <div id="lineModeTag" class="modeTag">Straight</div>
-        <div class="capHint" id="capHintLineChip">Capped at ±99</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Putt 1 -->
-  <section class="panel hidden" id="sectionP1">
-    <!-- header with derived leave bubble -->
-    <h2 class="h2-center-white helpwrap" id="putt1HeaderWrap">
-      <span class="helpbtn" id="putt1HeaderBtn">Putt 1</span>
-      <span class="tip" id="putt1HeaderTip">Derived leave from chip: —</span>
-    </h2>
-
-    <div class="inlinePuttRow" aria-label="First putt distance">
-      <div class="input slim p1"><input id="putt1Dist" type="number" min="0" step="1" placeholder="0" inputmode="numeric" /></div>
-      <span class="unit">ft</span>
-    </div>
-
-    <h2 class="h2-center-white helpwrap" id="puttHelpWrap">
-      <span class="helpbtn" id="puttHelpBtn">Input Putt 1 Result <span class="subNote">(distance from hole)</span></span>
-      <span class="tip" id="puttHelpTip">Enter how short/long and which side (L/R) the ball finished after the first putt.</span>
-    </h2>
-
-    <div class="row divider-2cols" style="margin-top:8px;">
-      <div class="field">
-        <div class="microlabel ml-left">Short</div>
-        <div class="microlabel ml-right">Long</div>
-        <div class="stepper">
-          <button class="step" id="depthDownP1">▼</button>
-          <div class="readout">
-            <input id="depthInputP1" class="readnum" type="text" inputmode="text" pattern="-?\\d{1,2}" maxlength="3" value="0" aria-label="Putt 1 depth signed feet" />
-            <span class="unit">ft</span>
+        <div class="vdiv" aria-hidden="true"></div>
+        <div class="field">
+          <div class="microlabel ml-left">Left</div>
+          <div class="microlabel ml-right">Right</div>
+          <div class="stepper">
+            <button class="step" id="lineLeft">◀</button>
+            <div class="readout">
+              <input id="lineInput" class="readnum" type="text" inputmode="text" pattern="-?\\d{1,2}" maxlength="3" value="0" aria-label="Line signed feet" />
+              <span class="unit">ft</span>
+            </div>
+            <button class="step" id="lineRight">▶</button>
           </div>
-          <button class="step" id="depthUpP1">▲</button>
+          <div id="lineModeTag" class="modeTag">Straight</div>
+          <div class="capHint" id="capHintLineChip">Capped at ±99</div>
         </div>
-        <div id="depthModeTagP1" class="modeTag">Exact</div>
-        <div class="capHint" id="capHintDepthP1">Capped at ±99</div>
       </div>
-      <div class="vdiv" aria-hidden="true"></div>
-      <div class="field">
-        <div class="microlabel ml-left">Left</div>
-        <div class="microlabel ml-right">Right</div>
-        <div class="stepper">
-          <button class="step" id="lineLeftP1">◀</button>
-          <div class="readout">
-            <input id="lineInputP1" class="readnum" type="text" inputmode="text" pattern="-?\\d{1,2}" maxlength="3" value="0" aria-label="Putt 1 line signed feet" />
-            <span class="unit">ft</span>
+    </section>
+
+    <!-- Putt 1 -->
+    <section class="panel hidden" id="sectionP1">
+      <h2 class="h2-center-white helpwrap" id="putt1HeaderWrap">
+        <span class="helpbtn" id="putt1HeaderBtn">Putt 1</span>
+        <span class="tip" id="putt1HeaderTip">Derived leave from chip: —</span>
+      </h2>
+
+      <div class="inlinePuttRow" aria-label="First putt distance">
+        <div class="input slim p1"><input id="putt1Dist" type="number" min="0" step="1" placeholder="0" inputmode="numeric" /></div>
+        <span class="unit">ft</span>
+      </div>
+
+      <h2 class="h2-center-white helpwrap" id="puttHelpWrap">
+        <span class="helpbtn" id="puttHelpBtn">Input Putt 1 Result <span class="subNote">(distance from hole)</span></span>
+        <span class="tip" id="puttHelpTip">Enter how short/long and which side (L/R) the ball finished after the first putt.</span>
+      </h2>
+
+      <div class="row divider-2cols" style="margin-top:8px;">
+        <div class="field">
+          <div class="microlabel ml-left">Short</div>
+          <div class="microlabel ml-right">Long</div>
+          <div class="stepper">
+            <button class="step" id="depthDownP1">▼</button>
+            <div class="readout">
+              <input id="depthInputP1" class="readnum" type="text" inputmode="text" pattern="-?\\d{1,2}" maxlength="3" value="0" aria-label="Putt 1 depth signed feet" />
+              <span class="unit">ft</span>
+            </div>
+            <button class="step" id="depthUpP1">▲</button>
           </div>
-          <button class="step" id="lineRightP1">▶</button>
+          <div id="depthModeTagP1" class="modeTag">Exact</div>
+          <div class="capHint" id="capHintDepthP1">Capped at ±99</div>
         </div>
-        <div id="lineModeTagP1" class="modeTag">Straight</div>
-        <div class="capHint" id="capHintLineP1">Capped at ±99</div>
+        <div class="vdiv" aria-hidden="true"></div>
+        <div class="field">
+          <div class="microlabel ml-left">Left</div>
+          <div class="microlabel ml-right">Right</div>
+          <div class="stepper">
+            <button class="step" id="lineLeftP1">◀</button>
+            <div class="readout">
+              <input id="lineInputP1" class="readnum" type="text" inputmode="text" pattern="-?\\d{1,2}" maxlength="3" value="0" aria-label="Putt 1 line signed feet" />
+              <span class="unit">ft</span>
+            </div>
+            <button class="step" id="lineRightP1">▶</button>
+          </div>
+          <div id="lineModeTagP1" class="modeTag">Straight</div>
+          <div class="capHint" id="capHintLineP1">Capped at ±99</div>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- Putts 2 & 3 -->
-  <section class="panel hidden" id="sectionP23">
-    <h2 class="h2-center-white helpwrap" id="p23HeaderWrap">
-      <span class="helpbtn" id="p23HeaderBtn">Putts 2 & 3 (distances only)</span>
-      <span class="tip" id="p23HeaderTip">Derived leave after Putt 1: —</span>
-    </h2>
-    <div class="row" style="margin-top:8px;">
-      <div class="field">
-        <div class="subtle">Putt 2 (ft)</div>
-        <div class="input"><input id="putt2" type="number" min="0" step="1" placeholder="0" inputmode="numeric" /></div>
+    <!-- Putts 2 & 3 -->
+    <section class="panel hidden" id="sectionP23">
+      <h2 class="h2-center-white helpwrap" id="p23HeaderWrap">
+        <span class="helpbtn" id="p23HeaderBtn">Putts 2 & 3 (distances only)</span>
+        <span class="tip" id="p23HeaderTip">Derived leave after Putt 1: —</span>
+      </h2>
+      <div class="row" style="margin-top:8px;">
+        <div class="field">
+          <div class="subtle">Putt 2 (ft)</div>
+          <div class="input"><input id="putt2" type="number" min="0" step="1" placeholder="0" inputmode="numeric" /></div>
+        </div>
+        <div class="field">
+          <div class="subtle">Putt 3 (ft)</div>
+          <div class="input"><input id="putt3" type="number" min="0" step="1" placeholder="0" inputmode="numeric" /></div>
+        </div>
       </div>
-      <div class="field">
-        <div class="subtle">Putt 3 (ft)</div>
-        <div class="input"><input id="putt3" type="number" min="0" step="1" placeholder="0" inputmode="numeric" /></div>
+    </section>
+
+    <!-- Save / Reset -->
+    <section class="panel footer">
+      <button class="btn save" id="saveBtn">Save Hole: —</button>
+      <div class="scoreline"><strong>Score:</strong> <span id="score">—</span></div>
+      <div></div>
+      <button class="btn undo" id="undoBtn">Reset Hole</button>
+    </section>
+
+    <!-- Log -->
+    <section class="panel">
+      <table class="tight">
+        <thead>
+          <tr>
+            <th>#</th><th>Date</th><th>Lie</th><th>Dist</th>
+            <th>Putt 1</th><th>Putt 2</th><th>Putt 3</th><th>Score</th>
+          </tr>
+        </thead>
+        <tbody id="logBody"></tbody>
+      </table>
+    </section>
+
+    <!-- Chart toggle -->
+    <section class="panel">
+      <button class="btn full chartToggle" id="toggleChartBtn">Show Dispersion Chart</button>
+    </section>
+
+    <!-- Chart + filters -->
+    <section class="panel hidden" id="chartPanel">
+      <h2 style="display:flex;justify-content:space-between;align-items:center; gap:8px; color:#fff; font-size:16px;">
+        <span>Session Dispersion (ft)</span>
+        <span class="seg" id="colorModeSeg">
+          <button data-mode="lie" class="active">Lie</button>
+          <button data-mode="distance">Distance</button>
+        </span>
+      </h2>
+      <canvas id="chipChart" width="380" height="280"></canvas>
+      <div class="filterbar subtle" id="dynFilterRow"></div>
+      <div style="display:flex;justify-content:space-between;margin-top:8px;flex-wrap:wrap;gap:8px;">
+        <button class="rowbtn" id="exportChartBtn">Export Chart PNG</button>
+        <button class="rowbtn" id="resetFiltersBtn">Reset filters</button>
       </div>
+    </section>
+  </main>
+</div>
+
+<!-- ========================= TRENDS VIEW ========================= -->
+<div id="view-trends" class="hidden">
+  <div class="tbar">
+    <button class="tbtn" id="backToEditor">Back</button>
+    <div class="grow"></div>
+    <button class="tbtn" id="exportAllCSV">Export CSV</button>
+  </div>
+
+  <div class="tbar" style="margin-top:-4px">
+    <label for="sessionPick" style="font-weight:700">Review Session:&nbsp;</label>
+    <select id="sessionPick"><option value="">All sessions</option></select>
+    <button class="tbtn primary" id="openInEditor">Open in editor</button>
+    <button class="tbtn" id="deleteSessionBtn" style="display:none">Delete session</button>
+    <span id="idbWarn" class="notice" style="display:none">IndexedDB unavailable.</span>
+  </div>
+
+  <div class="twrap">
+    <div class="tseg" role="tablist" aria-label="Sections">
+      <button class="active" data-tab="chip" role="tab" aria-selected="true">Chipping</button>
+      <button data-tab="putt" role="tab" aria-selected="false">Putting</button>
+      <button data-tab="ud" role="tab" aria-selected="false">Up &amp; Down</button>
     </div>
-  </section>
 
-  <!-- Save / Reset -->
-  <section class="panel footer">
-    <button class="btn save" id="saveBtn">Save Hole: —</button>
-    <div class="scoreline"><strong>Score:</strong> <span id="score">—</span></div>
-    <div></div>
-    <button class="btn undo" id="undoBtn">Reset Hole</button>
-  </section>
+    <!-- CHIPPING -->
+    <section id="tab-chip">
+      <div class="kpis">
+        <div class="kpi">
+          <div class="big" id="chipAvgLeave">–</div>
+          <div class="label">Avg leave (ft)</div>
+        </div>
+        <div class="kpi">
+          <div class="big" id="chipTotalShots">–</div>
+          <div class="label">Total # of Shots</div>
+        </div>
+      </div>
 
-  <!-- Log -->
-  <section class="panel">
-    <table class="tight">
-      <thead>
-        <tr>
-          <th>#</th><th>Date</th><th>Lie</th><th>Dist</th>
-          <th>Putt 1</th><th>Putt 2</th><th>Putt 3</th><th>Score</th>
-        </tr>
-      </thead>
-      <tbody id="logBody"></tbody>
-    </table>
-  </section>
+      <div class="chips" id="lieChipsT">
+        <span class="chip active" data-lie="All">All</span>
+        <span class="chip" data-lie="Fairway">Fairway</span>
+        <span class="chip" data-lie="Rough">Rough</span>
+        <span class="chip" data-lie="Sand">Sand</span>
+        <span class="chip" data-lie="Recovery">Recovery</span>
+      </div>
 
-  <!-- Chart toggle -->
-  <section class="panel">
-    <button class="btn full chartToggle" id="toggleChartBtn">Show Dispersion Chart</button>
-  </section>
+      <section class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>Dist to Pin (Yds)</th>
+              <th class="right"># of Shots</th>
+              <th class="right">Avg leave w/ direction</th>
+            </tr>
+          </thead>
+          <tbody id="chipRows"></tbody>
+        </table>
+      </section>
+    </section>
 
-  <!-- Chart + filters -->
-  <section class="panel hidden" id="chartPanel">
-    <h2 style="display:flex;justify-content:space-between;align-items:center; gap:8px; color:#fff; font-size:16px;">
-      <span>Session Dispersion (ft)</span>
-      <span class="seg" id="colorModeSeg">
-        <button data-mode="lie" class="active">Lie</button>
-        <button data-mode="distance">Distance</button>
-      </span>
-    </h2>
-    <canvas id="chipChart" width="380" height="280"></canvas>
-    <div class="filterbar subtle" id="dynFilterRow"></div>
-    <div style="display:flex;justify-content:space-between;margin-top:8px;flex-wrap:wrap;gap:8px;">
-      <button class="rowbtn" id="exportChartBtn">Export Chart PNG</button>
-      <button class="rowbtn" id="resetFiltersBtn">Reset filters</button>
-    </div>
-  </section>
-</main>
+    <!-- PUTTING -->
+    <section id="tab-putt" class="hidden">
+      <div class="kpis">
+        <div class="kpi">
+          <div class="big" id="puttHeadline">–</div>
+          <div class="label">Putting</div>
+        </div>
+        <div class="kpi">
+          <div class="big" id="puttTotal">–</div>
+          <div class="label">Total # of Putts</div>
+        </div>
+      </div>
+
+      <section class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>Dist to Pin (Ft)</th>
+              <th class="right"># of Putts</th>
+              <th class="right">Avg leave w/ direction</th>
+            </tr>
+          </thead>
+          <tbody id="puttRows"></tbody>
+        </table>
+      </section>
+      <p class="notice">“Avg leave w/ direction” uses the signed leave after Putt 1.</p>
+    </section>
+
+    <!-- UP & DOWN -->
+    <section id="tab-ud" class="hidden">
+      <div class="kpis">
+        <div class="kpi"><div class="big" id="udShots">–</div><div class="label"># of Shots</div></div>
+        <div class="kpi"><div class="big" id="udWins">–</div><div class="label">Total Up &amp; Downs</div></div>
+      </div>
+      <div class="kpis">
+        <div class="kpi" style="grid-column:1 / -1">
+          <div class="big" id="udRate">–</div>
+          <div class="label">Avg Success Rate</div>
+        </div>
+      </div>
+      <section class="card" style="padding:12px">
+        <div class="chips">
+          <span class="chip" id="roll7">7-day: –</span>
+          <span class="chip" id="roll30">30-day: –</span>
+        </div>
+        <div class="notice">Success = score ≤ 2 (chip-ins count).</div>
+      </section>
+    </section>
+  </div>
+</div>
 
 <script>
+  /* ===== Shared: view switching ===== */
+  const viewEditor  = document.getElementById('view-editor');
+  const viewTrends  = document.getElementById('view-trends');
+  function showView(which){
+    const t = which === 'trends';
+    viewEditor.classList.toggle('hidden', t);
+    viewTrends.classList.toggle('hidden', !t);
+  }
+  document.getElementById('goTrendsBtn').onclick   = ()=>{ initTrends().then(()=>showView('trends')); };
+  document.getElementById('backToEditor').onclick  = ()=> showView('editor');
+
+  /* ===== IndexedDB (shared) ===== */
+  const DB_NAME = 'par2';
+  function openPar2DB(){
+    return new Promise((res, rej)=>{
+      const req = indexedDB.open(DB_NAME, 1);
+      req.onupgradeneeded = ()=>{
+        const db = req.result;
+        if (!db.objectStoreNames.contains('sessions'))
+          db.createObjectStore('sessions', { keyPath:'id' });
+        if (!db.objectStoreNames.contains('holes')){
+          const st = db.createObjectStore('holes', { keyPath:'uid', autoIncrement:true });
+          st.createIndex('by_session', 'sessionId', { unique:false });
+        }
+      };
+      req.onsuccess = ()=> res(req.result);
+      req.onerror  = ()=> rej(req.error);
+    });
+  }
+  function idbAdd(store, value){
+    return new Promise((res, rej)=>{
+      const r = store.add(value);
+      r.onsuccess = ()=> res(r.result);
+      r.onerror = ()=> rej(r.error);
+    });
+  }
+  async function idbAll(storeName){
+    const db = await openPar2DB();
+    return new Promise((res, rej)=>{
+      const tx = db.transaction(storeName, 'readonly');
+      const st = tx.objectStore(storeName);
+      const out = [];
+      st.openCursor().onsuccess = (e)=>{
+        const c = e.target.result;
+        if (c){ out.push(c.value); c.continue(); } else { db.close(); res(out); }
+      };
+      tx.onerror = ()=> rej(tx.error);
+    });
+  }
+  async function idbGetHolesBySession(sessionId){
+    const db = await openPar2DB();
+    return new Promise((res, rej)=>{
+      const tx = db.transaction('holes', 'readonly');
+      const idx = tx.objectStore('holes').index('by_session');
+      const out = [];
+      const q = IDBKeyRange.only(sessionId);
+      idx.openCursor(q).onsuccess = (e)=>{
+        const c = e.target.result;
+        if (c){ out.push(c.value); c.continue(); } else { db.close(); res(out); }
+      };
+      tx.onerror = ()=> rej(tx.error);
+    });
+  }
+  async function idbDeleteSession(sessionId){
+    const db = await openPar2DB();
+    return new Promise((res, rej)=>{
+      const tx = db.transaction(['sessions','holes'], 'readwrite');
+      const sessions = tx.objectStore('sessions');
+      const holes = tx.objectStore('holes');
+      sessions.delete(sessionId);
+      const idx = holes.index('by_session');
+      const q = IDBKeyRange.only(sessionId);
+      idx.openCursor(q).onsuccess = (e)=>{
+        const c = e.target.result;
+        if (c){ holes.delete(c.primaryKey); c.continue(); }
+      };
+      tx.oncomplete = ()=>{ db.close(); res(true); };
+      tx.onerror = ()=> rej(tx.error);
+    });
+  }
+
+  /* ===== Editor logic ===== */
   const r0 = (n) => Math.round(Number(n) || 0);
   const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
 
@@ -347,6 +569,7 @@
   let colorMode = "lie";
   const activeCats = { Fairway:true, Rough:true, Sand:true, Recovery:true, d1:true, d2:true, d3:true };
   const includeChipInsInUpDown = true;
+  let workingSessionId = ''; // <-- track when editing an existing session
 
   const holeInput = document.getElementById("hole");
   const dateInput = document.getElementById("date");
@@ -363,24 +586,20 @@
   dateInput.value = new Date().toISOString().slice(0,10);
   updateSaveLabel();
 
-  // Smooth scroll helper
   function smoothFocus(el){
     if (!el) return;
     requestAnimationFrame(()=> setTimeout(()=> el.scrollIntoView({ behavior:'smooth', block:'center' }), 30));
   }
 
-  // Distance (toggle on/off; scroll to chip if lie already chosen)
   const distButtons = Array.from(document.querySelectorAll("#distanceGrid button"));
   distButtons.forEach(btn=>{
     btn.addEventListener("click", ()=>{
       const val = parseInt(btn.textContent,10);
       if (btn.classList.contains('active')) {
-        btn.classList.remove('active');
-        selectedDist = null;
+        btn.classList.remove('active'); selectedDist = null;
       } else {
         distButtons.forEach(b=>b.classList.remove("active"));
-        btn.classList.add("active");
-        selectedDist = val;
+        btn.classList.add("active"); selectedDist = val;
         if (selectedLie && !document.getElementById('chipSection').classList.contains('hidden')){
           smoothFocus(document.getElementById('chipSection'));
         }
@@ -389,7 +608,6 @@
     });
   });
 
-  // Lie (toggle on/off) + always scroll to Chip when showing
   const lieButtons = document.querySelectorAll("#lieChips .pill");
   function updateChipVisibility(scrollOnShow=false){
     const sec = document.getElementById("chipSection");
@@ -401,19 +619,12 @@
     p.addEventListener("click", ()=>{
       const already = p.classList.contains('active');
       lieButtons.forEach(x=>x.classList.remove("active"));
-      if (already) {
-        selectedLie = "";
-        updateChipVisibility(false);
-      } else {
-        p.classList.add("active");
-        selectedLie = p.dataset.lie;
-        updateChipVisibility(true);
-      }
+      if (already) { selectedLie = ""; updateChipVisibility(false); }
+      else { p.classList.add("active"); selectedLie = p.dataset.lie; updateChipVisibility(true); }
       calcAll();
     });
   });
 
-  // ----- Signed steppers — CHIP
   let depthSigned = 0, lineSigned  = 0;
   const depthInputEl = document.getElementById('depthInput');
   const lineInputEl  = document.getElementById('lineInput');
@@ -479,7 +690,6 @@
     updateChipStepperUI(); calcAll();
   });
 
-  // ----- Signed steppers — PUTT 1
   let depthSignedP1 = 0, lineSignedP1 = 0;
   const depthInputP1 = document.getElementById('depthInputP1');
   const lineInputP1  = document.getElementById('lineInputP1');
@@ -524,7 +734,6 @@
     updateP1StepperUI(); calcAll();
   });
 
-  // Other fields
   const putt1Dist   = document.getElementById("putt1Dist");
   const p2          = document.getElementById("putt2");
   const p3          = document.getElementById("putt3");
@@ -549,7 +758,6 @@
     document.getElementById("sectionP23").classList.toggle("hidden", !p1HasInput);
   }
 
-  // Helper tip wiring (click + scroll dismiss)
   const chipHelpWrap = document.getElementById('chipHelpWrap');
   const chipHelpBtn  = document.getElementById('chipHelpBtn');
   const puttHelpWrap = document.getElementById('puttHelpWrap');
@@ -569,7 +777,6 @@
   document.addEventListener('click', closeAllTips);
   window.addEventListener('scroll', closeAllTips, {passive:true});
 
-  // Update derived-leave helper texts
   function updateDerivedBubbles(chip, p1){
     const p1Tip = document.getElementById('putt1HeaderTip');
     if (p1Tip){
@@ -593,10 +800,8 @@
     const chip = leaveFromSigned(depthSigned, lineSigned);
     const p1   = leaveFromSigned(depthSignedP1, lineSignedP1);
 
-    // write derived info into helper bubbles
     updateDerivedBubbles(chip, p1);
 
-    // auto-fill next distances
     const chipHasInput = (Math.abs(depthSigned) || Math.abs(lineSigned)) > 0;
     const p1HasInput   = (Math.abs(depthSignedP1) || Math.abs(lineSignedP1)) > 0;
 
@@ -611,12 +816,13 @@
     if (r0(p3.value) > 0) putts++;
     strokes += putts;
     if (chip.leave===0 && putts===0) strokes = 1;
-    scoreEl.textContent = (!selectedDist || !selectedLie) ? "—" : strokes;
+    document.getElementById("score").textContent = (!selectedDist || !selectedLie) ? "—" : strokes;
   }
 
   function clearUISelections(){
-    distButtons.forEach(b=>b.classList.remove("active")); selectedDist=null;
-    lieButtons.forEach(x=>x.classList.remove("active")); selectedLie = "";
+    // does not clear 'saved' list
+    document.querySelectorAll("#distanceGrid button").forEach(b=>b.classList.remove("active")); selectedDist=null;
+    document.querySelectorAll("#lieChips .pill").forEach(x=>x.classList.remove("active")); selectedLie = "";
     depthSigned=0; lineSigned=0; pendingDepth=false; pendingLine=false; updateChipStepperUI();
     depthSignedP1=0; lineSignedP1=0; pendingDepthP1=false; pendingLineP1=false; updateP1StepperUI();
     document.getElementById("putt1Dist").value="";
@@ -625,15 +831,21 @@
     document.getElementById("chipSection").classList.add("hidden");
     document.getElementById("sectionP1").classList.add("hidden");
     document.getElementById("sectionP23").classList.add("hidden");
-    scoreEl.textContent = "—";
+    document.getElementById("score").textContent = "—";
   }
 
   function applyRowToUI(r){
     clearUISelections();
     selectedDist = Number(r.dist)||null;
-    if (selectedDist){ const btn = distButtons.find(b=> Number(b.textContent) === selectedDist); if (btn){ btn.classList.add('active'); } }
+    if (selectedDist){
+      const btn = Array.from(document.querySelectorAll("#distanceGrid button")).find(b=> Number(b.textContent) === selectedDist);
+      if (btn) btn.classList.add('active');
+    }
     selectedLie = r.lie || "";
-    if (selectedLie){ document.querySelectorAll('#lieChips .pill').forEach(b=> b.classList.toggle('active', b.dataset.lie===selectedLie)); }
+    if (selectedLie){
+      document.querySelectorAll('#lieChips .pill')
+        .forEach(b=> b.classList.toggle('active', b.dataset.lie===selectedLie));
+    }
     updateChipVisibility();
 
     depthSigned = Number(r.chipDepthSigned||0);
@@ -670,8 +882,6 @@
         <td class="score-cell">${r.score}<button class="rowbtn" data-del="${idx}" title="Delete">🗑</button></td>`;
       tbody.appendChild(tr);
     });
-
-    // delete only
     tbody.querySelectorAll('button[data-del]').forEach(btn=>{
       btn.onclick = ()=>{
         const i = Number(btn.getAttribute('data-del'));
@@ -685,8 +895,8 @@
     const successes = saved.filter(r => (includeChipInsInUpDown ? r.score <= 2 : r.score === 2)).length;
     const updownPct = attempts ? Math.round((successes/attempts)*100) : 0;
     const over = total - par; const overLabel = over > 0 ? `+${over}` : `${over}`;
-    const sumTxt = `Par: ${par} | Gross: ${total} | Up/Down: ${updownPct}% | To Par: ${overLabel}`;
-    const sbTop = document.getElementById("summaryBarTop"); if (sbTop) sbTop.textContent = sumTxt;
+    document.getElementById("summaryBarTop").textContent =
+      `Par: ${par} | Gross: ${total} | Up/Down: ${updownPct}% | To Par: ${overLabel}`;
 
     renderFilterRow(); renderChart();
   }
@@ -694,7 +904,8 @@
   function downloadBlob(filename, blob){
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = filename;
-    const supportsDownload = typeof a.download !== 'undefined'; const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const supportsDownload = typeof a.download !== 'undefined';
+    const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     if (!supportsDownload || isiOS){ window.open(url, '_blank'); }
     else { document.body.appendChild(a); a.click(); document.body.removeChild(a); }
     setTimeout(()=>URL.revokeObjectURL(url), 1500);
@@ -761,7 +972,6 @@
     downloadBlob('par2_export.csv', blob);
   });
 
-  // Chart export PNG (image-only)
   document.getElementById('exportChartBtn').addEventListener('click', ()=>{
     const cv = document.getElementById('chipChart');
     if (!cv) return;
@@ -776,8 +986,9 @@
   });
 
   document.getElementById("clearBtn").addEventListener("click", () => {
-    if (!confirm('Clear EVERYTHING? This removes all saved holes and resets the form.')) return;
+    if (!confirm('Clear EVERYTHING on this screen?')) return;
     saved = []; holeInput.value = 1; dateInput.value = new Date().toISOString().slice(0,10);
+    workingSessionId = ''; // stop editing mode
     clearUISelections(); renderLog();
     document.getElementById('summaryBarTop').textContent = 'Par: 0 | Gross: 0 | Up/Down: 0% | To Par: 0';
     updateSaveLabel();
@@ -786,7 +997,6 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
-  // Color toggle & filters
   document.querySelectorAll('#colorModeSeg button').forEach(b=>{
     b.addEventListener('click', ()=>{
       document.querySelectorAll('#colorModeSeg button').forEach(x=>x.classList.remove('active'));
@@ -901,7 +1111,319 @@
     });
   }
 
-  // init
+  // Save/Update Session -> IndexedDB
+  document.getElementById('saveSessionBtn').addEventListener('click', async ()=>{
+    if (!saved.length){ alert('Nothing to save yet. Add at least one hole.'); return; }
+    const isUpdate = !!workingSessionId;
+    try{
+      const db = await openPar2DB();
+      const tx = db.transaction(['sessions','holes'], 'readwrite');
+      const sessions = tx.objectStore('sessions');
+      const holes = tx.objectStore('holes');
+
+      const dateVals = saved.map(r=> new Date(r.date || new Date().toISOString().slice(0,10)));
+      const minDate = new Date(Math.min(...dateVals.map(d=>d.getTime())));
+      const maxDate = new Date(Math.max(...dateVals.map(d=>d.getTime())));
+
+      let id = workingSessionId || `s_${Date.now()}`;
+      if (isUpdate){
+        // wipe existing holes for this session
+        const idx = holes.index('by_session');
+        const q = IDBKeyRange.only(id);
+        await new Promise((resolve,reject)=>{
+          idx.openCursor(q).onsuccess = (e)=>{
+            const c = e.target.result;
+            if (c){ holes.delete(c.primaryKey); c.continue(); } else resolve();
+          };
+          tx.onerror = ()=> reject(tx.error);
+        });
+        // update session metadata
+        await new Promise((res,rej)=>{
+          const r = sessions.put({ id, createdAt:new Date().toISOString(),
+            dateStart:minDate.toISOString().slice(0,10),
+            dateEnd:maxDate.toISOString().slice(0,10),
+            holes: saved.length });
+          r.onsuccess=()=>res(); r.onerror=()=>rej(r.error);
+        });
+      } else {
+        await new Promise((res,rej)=>{
+          const r = sessions.add({ id, createdAt:new Date().toISOString(),
+            dateStart:minDate.toISOString().slice(0,10),
+            dateEnd:maxDate.toISOString().slice(0,10),
+            holes: saved.length });
+          r.onsuccess=()=>res(); r.onerror=()=>rej(r.error);
+        });
+      }
+      // add holes
+      for (const r of saved) await idbAdd(holes, { sessionId:id, ...r });
+      tx.oncomplete = ()=> db.close();
+
+      // Reset editor state and hole to 1
+      saved = [];
+      renderLog();
+      holeInput.value = 1; updateSaveLabel();
+      clearUISelections();
+      workingSessionId = '';
+      alert(isUpdate ? 'Session updated.' : 'Session saved to Stats/Trends.');
+    }catch(err){
+      console.error(err);
+      alert('Could not save session (IndexedDB may be blocked).');
+    }
+  });
+
+  // ===== Trends logic (runs when you open Trends) =====
+  let HOLES = [], SESSIONS = [], currentSession = '', chipLie = 'All';
+
+  function chipBucket(dist){
+    const d = Number(dist)||0;
+    if (d>=10 && d<=25) return '10–25';
+    if (d>=30 && d<=45) return '30–45';
+    if (d>=50 && d<=65) return '50–65';
+    return null;
+  }
+  function puttBucket(ft){
+    const d = Number(ft)||0;
+    if (d<=2) return '0–2';
+    if (d<=5) return '3–5';
+    if (d<=10) return '6–10';
+    if (d<=20) return '11–20';
+    if (d<=30) return '21–30';
+    return '30+';
+  }
+
+  async function initTrends(){
+    try{
+      [SESSIONS, HOLES] = await Promise.all([idbAll('sessions'), idbAll('holes')]);
+      SESSIONS.sort((a,b)=> (b.dateStart||'').localeCompare(a.dateStart||''));
+      populateSessionPicker();
+      wireTrendsUI();
+      renderTrendsAll();
+      document.getElementById('idbWarn').style.display = (SESSIONS.length||HOLES.length) ? 'none' : 'inline';
+    }catch(e){
+      console.error(e);
+      document.getElementById('idbWarn').style.display = 'inline';
+    }
+  }
+
+  function populateSessionPicker(){
+    const sel = document.getElementById('sessionPick');
+    sel.innerHTML = '<option value="">All sessions</option>';
+    SESSIONS.forEach(s=>{
+      const opt = document.createElement('option');
+      opt.value = s.id;
+      const label = (s.dateStart===s.dateEnd) ? s.dateStart : `${s.dateStart} – ${s.dateEnd}`;
+      opt.textContent = `${label} (${s.holes})`;
+      sel.appendChild(opt);
+    });
+    const delBtn = document.getElementById('deleteSessionBtn');
+    sel.onchange = ()=>{
+      currentSession = sel.value;
+      delBtn.style.display = currentSession ? 'inline-flex' : 'none';
+      renderTrendsAll();
+    };
+    // reflect current selection state on load
+    document.getElementById('deleteSessionBtn').style.display = currentSession ? 'inline-flex' : 'none';
+  }
+
+  function filteredHoles(){
+    return HOLES.filter(h=> !currentSession || h.sessionId === currentSession);
+  }
+
+  function renderChip(){
+    const chipRowsEl = document.getElementById('chipRows');
+    const rows = filteredHoles().filter(h=> chipBucket(h.dist) && (chipLie==='All' || h.lie===chipLie));
+    const byB = {'10–25':[], '30–45':[], '50–65':[]};
+    rows.forEach(r=> byB[chipBucket(r.dist)].push(r));
+
+    function avgMag(list){
+      if (!list.length) return 0;
+      return list.reduce((s,r)=> s + Math.hypot(r.chipDepthSigned||0, r.chipLateralSigned||0), 0) / list.length;
+    }
+    function signedMean(list, key){
+      if (!list.length) return 0;
+      return list.reduce((s,r)=> s + (Number(r[key])||0), 0) / list.length;
+    }
+
+    document.getElementById('chipTotalShots').textContent = rows.length || '0';
+    document.getElementById('chipAvgLeave').textContent = rows.length ? avgMag(rows).toFixed(1) : '–';
+
+    chipRowsEl.innerHTML = '';
+    ['10–25','30–45','50–65'].forEach(label=>{
+      const list = byB[label];
+      const n = list.length;
+      const md = signedMean(list,'chipDepthSigned');
+      const ml = signedMean(list,'chipLateralSigned');
+      const dirD = md<0 ? 'Short' : md>0 ? 'Long' : 'Exact';
+      const dirL = ml<0 ? 'Left'  : ml>0 ? 'Right': 'Straight';
+      const mag = n ? (list.reduce((s,r)=> s + Math.hypot(r.chipDepthSigned||0, r.chipLateralSigned||0), 0)/n).toFixed(1) : '–';
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${label}</td>
+        <td class="right">${n||0}</td>
+        <td class="right">${n?`${mag} ft (${dirD} ${Math.abs(md).toFixed(1)} / ${dirL} ${Math.abs(ml).toFixed(1)})`:'—'}</td>
+      `;
+      chipRowsEl.appendChild(tr);
+    });
+  }
+
+  function renderPutt(){
+    const puttRowsEl = document.getElementById('puttRows');
+    const rows = filteredHoles().filter(h=> Number(h.p1)>0);
+    const byB = {'0–2':[], '3–5':[], '6–10':[], '11–20':[], '21–30':[], '30+':[]};
+    rows.forEach(r=> byB[puttBucket(r.p1)].push(r));
+
+    document.getElementById('puttTotal').textContent = rows.length||'0';
+    document.getElementById('puttHeadline').textContent = rows.length
+      ? (rows.reduce((s,r)=> s + Math.hypot(r.p1DepthSigned||0, r.p1LateralSigned||0), 0)/rows.length).toFixed(2)
+      : '–';
+
+    puttRowsEl.innerHTML = '';
+    Object.keys(byB).forEach(label=>{
+      const list = byB[label], n = list.length;
+      const md = n ? list.reduce((s,r)=> s + (Number(r.p1DepthSigned)||0), 0)/n : 0;
+      const ml = n ? list.reduce((s,r)=> s + (Number(r.p1LateralSigned)||0), 0)/n : 0;
+      const dirD = md<0 ? 'Short' : md>0 ? 'Long' : 'Exact';
+      const dirL = ml<0 ? 'Left'  : ml>0 ? 'Right': 'Straight';
+      const mag = n ? (list.reduce((s,r)=> s + Math.hypot(r.p1DepthSigned||0, r.p1LateralSigned||0), 0)/n).toFixed(2) : '–';
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${label}</td>
+        <td class="right">${n||0}</td>
+        <td class="right">${n?`${mag} ft (${dirD} ${Math.abs(md).toFixed(2)} / ${dirL} ${Math.abs(ml).toFixed(2)})`:'—'}</td>
+      `;
+      puttRowsEl.appendChild(tr);
+    });
+  }
+
+  function renderUD(){
+    const rows = filteredHoles();
+    const attempts = rows.length;
+    const wins = rows.filter(r=> Number(r.score)<=2).length;
+    const rate = attempts ? (wins/attempts*100) : 0;
+
+    document.getElementById('udShots').textContent = attempts || '0';
+    document.getElementById('udWins').textContent = wins || '0';
+    document.getElementById('udRate').textContent = attempts ? `${rate.toFixed(1)}%` : '–';
+
+    const byDay = {};
+    rows.forEach(r=>{
+      const d = r.date || '';
+      if(!byDay[d]) byDay[d] = {a:0,w:0};
+      byDay[d].a += 1;
+      byDay[d].w += (Number(r.score)<=2) ? 1 : 0;
+    });
+    const days = Object.keys(byDay).sort();
+    function roll(n){
+      if (!days.length) return '–';
+      const arr = days.map(d=> ({d, a:byDay[d].a, w:byDay[d].w, r: byDay[d].a ? byDay[d].w/byDay[d].a : 0}));
+      const last = arr.slice(-n);
+      if (!last.length) return '–';
+      const avg = last.reduce((s,x)=> s + x.r, 0)/last.length;
+      return (avg*100).toFixed(1)+'%';
+    }
+    document.getElementById('roll7').textContent = '7-day: ' + roll(7);
+    document.getElementById('roll30').textContent = '30-day: ' + roll(30);
+  }
+
+  function renderTrendsAll(){ renderChip(); renderPutt(); renderUD(); }
+
+  function wireTrendsUI(){
+    // tabs
+    document.querySelectorAll('#view-trends .tseg button').forEach(b=>{
+      b.onclick = ()=>{
+        document.querySelectorAll('#view-trends .tseg button').forEach(x=>x.classList.remove('active'));
+        b.classList.add('active');
+        ['chip','putt','ud'].forEach(t=>
+          document.getElementById('tab-'+t).classList.toggle('hidden', b.dataset.tab !== t)
+        );
+      };
+    });
+    // lie filter (chip)
+    document.querySelectorAll('#lieChipsT .chip').forEach(c=>{
+      c.onclick = ()=>{
+        document.querySelectorAll('#lieChipsT .chip').forEach(x=>x.classList.remove('active'));
+        c.classList.add('active'); chipLie = c.dataset.lie; renderChip();
+      };
+    });
+    // export
+    document.getElementById('exportAllCSV').onclick = ()=>{
+      const rows = filteredHoles();
+      const cols = [
+        "sessionId","hole","date","lie","dist_yd",
+        "chip_leave_ft","chip_depth_ft_signed","chip_lateral_ft_signed",
+        "putt1_ft","putt1_depth_ft_signed","putt1_lateral_ft_signed",
+        "putt2_ft","putt3_ft","score"
+      ];
+      const out = [cols];
+      rows.forEach(r=>{
+        out.push([
+          r.sessionId||"", r.hole, r.date, r.lie, r.dist,
+          r.chipLeave, r.chipDepthSigned, r.chipLateralSigned,
+          r.p1||"", r.p1DepthSigned||"", r.p1LateralSigned||"",
+          r.p2||"", r.p3||"", r.score
+        ]);
+      });
+      const csv = out.map(a=>a.join(",")).join("\n");
+      const blob = new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8;"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'par2_trends.csv';
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1500);
+    };
+
+    // open in editor (load for editing)
+    document.getElementById('openInEditor').onclick = async ()=>{
+      const id = document.getElementById('sessionPick').value;
+      if (!id){ showView('editor'); return; }
+      try{
+        const rows = await idbGetHolesBySession(id);
+        // load into editor
+        saved = rows
+          .sort((a,b)=> (Number(a.hole)||0) - (Number(b.hole)||0))
+          .map(({uid,sessionId, ...r})=> ({...r}));
+        workingSessionId = id;
+        renderLog();
+        // jump editor to hole 1 and reset UI
+        document.getElementById('hole').value = 1;
+        updateSaveLabel();
+        clearUISelections();
+        showView('editor');
+      }catch(e){
+        console.error(e);
+        alert('Could not open session.');
+      }
+    };
+
+    // delete session
+    document.getElementById('deleteSessionBtn').onclick = async ()=>{
+      const id = document.getElementById('sessionPick').value;
+      if (!id) return;
+      if (!confirm('Delete this session and all its holes? This cannot be undone.')) return;
+      try{
+        await idbDeleteSession(id);
+        // if we were editing this one, clear editor working copy
+        if (workingSessionId === id){
+          workingSessionId = '';
+          saved = [];
+          renderLog();
+          document.getElementById('hole').value = 1;
+          updateSaveLabel();
+          clearUISelections();
+        }
+        // refresh lists
+        [SESSIONS, HOLES] = await Promise.all([idbAll('sessions'), idbAll('holes')]);
+        currentSession = '';
+        populateSessionPicker();
+        renderTrendsAll();
+        alert('Session deleted.');
+      }catch(e){
+        console.error(e);
+        alert('Could not delete session.');
+      }
+    };
+  }
+
+  // initial editor boot
   document.querySelectorAll("#lieChips .pill").forEach(x=>x.classList.remove("active"));
   document.getElementById("chipSection").classList.add("hidden");
   document.getElementById("sectionP1").classList.add("hidden");
