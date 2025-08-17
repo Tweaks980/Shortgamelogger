@@ -51,7 +51,7 @@
     padding:10px 12px;color:var(--text);display:inline-flex;align-items:center;justify-content:center}
   .input input{background:transparent;border:none;outline:none;color:var(--text);width:100%;font-size:16px}
   .input.slim{padding:8px 10px; min-width:84px}
-  .input.datepill{height:36px; padding:8px 12px; border-radius:12px; width:100%}
+  .input.datepill{height:64px; padding:8px 12px; border-radius:12px; width:100%}
   .input.slim.p1{padding:4px 10px; min-width:0; border-radius:10px; width:auto}
   .inlinePuttRow { display:flex; align-items:center; gap:8px; margin:4px 0 14px 0; justify-content:center; }
   .inlinePuttRow .p1 input{ width:5ch; text-align:center; font-variant-numeric:tabular-nums; }
@@ -61,7 +61,6 @@
 
   .chips{display:flex;gap:10px;flex-wrap:wrap; overflow:visible}
   .pill{padding:10px 12px;border-radius:14px;cursor:pointer; color:var(--muted); border-color:var(--border); position:relative}
-  /* NEW: use box-shadow instead of outline so it never clips */
   .pill.active{outline:2px solid var(--accent)}
   .pill[data-lie="Fairway"].active  { color:#7CFC00; border-color:#375b37; outline-color:#7CFC00 }
   .pill[data-lie="Rough"].active    { color:#ffa74d; border-color:#6f5131; outline-color:#ffa74d }
@@ -597,6 +596,14 @@
   dateInput.value = new Date().toISOString().slice(0,10);
   updateSaveLabel();
 
+  // Turn "YYYY-MM-DD" into "MM-DD-YYYY"
+  function formatMMDDYYYY(iso){
+    if (!iso) return "";
+    const [y, m, d] = iso.split("-");
+    if (!y || !m || !d) return iso; // fallback
+    return `${m.padStart(2,"0")}-${d.padStart(2,"0")}-${y}`;
+  }
+
   // session header
   async function updateSessionHeader(){
     const labelEl = document.getElementById('sessionHeader');
@@ -611,9 +618,9 @@
         const idx = sameDay.findIndex(s=> s.id === workingSessionId);
         if (idx >= 0) n = idx + 1;
       }
-      labelEl.textContent = `Session: ${dateStr} (${n})`;
+      labelEl.textContent = `Session: ${formatMMDDYYYY(dateStr)} (${n})`;
     }catch{
-      labelEl.textContent = `Session: ${dateStr} (1)`;
+      labelEl.textContent = `Session: ${formatMMDDYYYY(dateStr)} (1)`;
     }
   }
   dateInput.addEventListener('change', updateSessionHeader);
@@ -906,7 +913,7 @@
       const tr = document.createElement("tr");
       tr.dataset.idx = idx;
       tr.innerHTML = `
-        <td>${r.hole}</td><td>${r.date}</td><td>${r.lie}</td><td>${r.dist} yd</td>
+        <td>${r.hole}</td><td>${formatMMDDYYYY(r.date)}</td><td>${r.lie}</td><td>${r.dist} yd</td>
         <td>${r.p1 || ""}${r.p1? " ft": ""}</td>
         <td>${r.p2 || ""}${r.p2? " ft": ""}</td>
         <td>${r.p3 || ""}${r.p3? " ft": ""}</td>
@@ -963,6 +970,7 @@
       chipDepthDir: chip.depthDir, chipLineDir: chip.lineDir,
       chipX: chip.lSigned, chipY: chip.dSigned,
       p1: p1d || "", p1DepthSigned: p1.dSigned || "", p1LateralSigned: p1.lSigned || "",
+      p1DepthDir: p1.depthDir || "", p1LineDir: p1.lineDir || "",
       p2: p2d || "", p3: p3d || "", score: strokes
     };
 
@@ -991,7 +999,7 @@
     const rows = [cols];
     saved.forEach(r=>{
       rows.push([
-        r.hole, r.date, r.lie, r.dist,
+        r.hole, formatMMDDYYYY(r.date), r.lie, r.dist,
         r.chipLeave, r.chipDepthSigned, r.chipLateralSigned, r.chipDepthDir, r.chipLineDir,
         r.p1 || "", r.p1DepthSigned || "", r.p1LateralSigned || "", r.p1DepthDir || "", r.p1LineDir || "",
         r.p2 || "", r.p3 || "", r.score
@@ -1209,7 +1217,7 @@
   async function initTrends(){
     try{
       [SESSIONS, HOLES] = await Promise.all([idbAll('sessions'), idbAll('holes')]);
-      SESSIONS.sort((a,b)=> (b.dateStart||'').localeCompare(a.dateStart||''));
+      SESSIONS.sort((a,b)=> (b.dateStart||'').localeCompare(a.dateStart||'')); // newest day first
       populateSessionPicker();
       wireTrendsUI();
       renderTrendsAll();
@@ -1223,13 +1231,37 @@
   function populateSessionPicker(){
     const sel = document.getElementById('sessionPick');
     sel.innerHTML = '<option value="">All sessions</option>';
+
+    // Group sessions by start date and sort each day's sessions by createdAt
+    const byDate = {};
+    SESSIONS.forEach(s=>{
+      const k = s.dateStart || '';
+      (byDate[k] ||= []).push(s);
+    });
+    Object.values(byDate).forEach(list=>{
+      list.sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||''));
+    });
+
     SESSIONS.forEach(s=>{
       const opt = document.createElement('option');
       opt.value = s.id;
-      const label = (s.dateStart===s.dateEnd) ? s.dateStart : `${s.dateStart} – ${s.dateEnd}`;
-      opt.textContent = `${label} (${s.holes})`;
+
+      const base =
+        (s.dateStart===s.dateEnd)
+          ? formatMMDDYYYY(s.dateStart)
+          : `${formatMMDDYYYY(s.dateStart)} – ${formatMMDDYYYY(s.dateEnd)}`;
+
+      let label = base;
+      if (s.dateStart === s.dateEnd){
+        const dayList = byDate[s.dateStart] || [];
+        const idx = Math.max(1, dayList.findIndex(x=>x.id===s.id) + 1);
+        label = `${base} (${idx})`;
+      }
+
+      opt.textContent = label;
       sel.appendChild(opt);
     });
+
     const delBtn = document.getElementById('deleteSessionBtn');
     sel.onchange = ()=>{
       currentSession = sel.value;
@@ -1369,7 +1401,7 @@
       const out = [cols];
       rows.forEach(r=>{
         out.push([
-          r.sessionId||"", r.hole, r.date, r.lie, r.dist,
+          r.sessionId||"", r.hole, formatMMDDYYYY(r.date), r.lie, r.dist,
           r.chipLeave, r.chipDepthSigned, r.chipLateralSigned,
           r.p1||"", r.p1DepthSigned||"", r.p1LateralSigned||"",
           r.p2||"", r.p3||"", r.score
