@@ -12,12 +12,33 @@
     --muted:#9aa7b2; --accent:#2ea043; --accent-2:#3b82f6; --btn:#2b3138; --btn-active:#355043;
     --border:#2a3138; --radius:14px;
   }
+  :root{
+  --blue:#3b82f6;   /* indigo/blue */
+  --green:#22c55e;  /* emerald   */
+  --red:#ef4444;    /* red       */
+  --purple:#a855f7; /* purple    */
+}
+
+/* colored buttons just for the top editor bar */
+header.editorbar .btn[data-color]{
+  border-color:transparent;
+  color:#fff;
+  font-weight:800;
+}
+header.editorbar .btn[data-color="blue"]   { background:var(--blue); }
+header.editorbar .btn[data-color="green"]  { background:var(--green); color:#08210a; } /* darker text on green reads better */
+header.editorbar .btn[data-color="red"]    { background:var(--red); }
+header.editorbar .btn[data-color="purple"] { background:var(--purple); }
+
+/* simple affordances */
+header.editorbar .btn[data-color]:hover { filter:brightness(1.06); }
+header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--text);
     font-family:-apple-system,BlinkMacSystemFont,Inter,Arial,sans-serif}
   .wrap{max-width:420px;margin:0 auto;padding:12px}
 
-  header.editorbar{display:flex;gap:8px;padding:10px;border-bottom:1px solid var(--border);
+  header.editorbar{display:flex;gap:6px;padding:6px;border-bottom:1px solid var(--border);
     position:sticky;top:0;background:rgba(15,17,21,.95);backdrop-filter:blur(8px);z-index:4}
   .btn{background:var(--btn);color:var(--text);border:1px solid var(--border);
     padding:8px 12px;border-radius:10px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
@@ -28,7 +49,7 @@
     padding:14px 18px; border-radius:14px; font-size:16px}
   .hidden{display:none}
 
-  h1.sessionTitle{margin:6px 0 0;text-align:center;font-size:18px;font-weight:800}
+  h1.sessionTitle{margin:4px 0 0;text-align:center;font-size:20px;font-weight:800}
   h2{margin:0 0 8px 0;font-size:14px;color:var(--muted);font-weight:600}
   .h2-center-white{color:var(--text); text-align:center;}
 
@@ -40,12 +61,12 @@
     margin-top:6px; display:none; z-index:5}
   .helpwrap.open .tip{ display:block; }
 
-  .panel{background:var(--panel);padding:12px;margin:10px 0;border-radius:var(--radius);
+  .panel{background:var(--panel);padding:12px;margin:5px 0;border-radius:var(--radius);
     border:1px solid var(--border)}
   .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .row.divider-2cols{grid-template-columns:minmax(0,1fr) 1px minmax(0,1fr);align-items:start}
   .vdiv{width:1px;background:var(--border);height:100%;border-radius:1px}
-  .field{display:grid;gap:6px}
+  .field{display:grid;gap:1px}
 
   .input,.counter,.pill{background:var(--panel-2);border:1px solid var(--border);border-radius:12px;
     padding:10px 12px;color:var(--text);display:inline-flex;align-items:center;justify-content:center}
@@ -180,12 +201,12 @@
 <body>
 <!-- ========================= VIEW SWITCHER ========================= -->
 <div id="view-editor">
-  <header class="wrap editorbar">
-    <button class="btn" id="exportBtn">Export CSV</button>
-    <button class="btn" id="clearBtn">Clear</button>
-    <button class="btn" id="saveSessionBtn" title="Save current session to Stats/Trends">Save Session</button>
-    <button class="btn" id="goTrendsBtn" title="Open Stats/Trends">Stats/Trends</button>
-  </header>
+<header class="wrap editorbar">
+  <button class="btn" data-color="purple" id="exportBtn">Export CSV</button>
+  <button class="btn" data-color="red"    id="clearBtn">Clear</button>
+  <button class="btn" data-color="green"  id="saveSessionBtn" title="Save current session to Stats/Trends">Finish Session</button>
+  <button class="btn" data-color="blue"   id="goTrendsBtn" title="Open Stats/Trends">Stats/Trends</button>
+</header>
 
   <!-- NEW: session header -->
   <section class="wrap"><h1 id="sessionHeader" class="sessionTitle">Session: —</h1></section>
@@ -457,7 +478,7 @@
             <tr>
               <th>Dist to Pin (Ft)</th>
               <th class="right"># of Putts</th>
-              <th class="right">Avg leave w/ direction</th>
+              <th class="right">Avg leave w/ direction </th>
             </tr>
           </thead>
           <tbody id="puttRows"></tbody>
@@ -1394,8 +1415,8 @@
       const rows = filteredHoles();
       const cols = [
         "sessionId","hole","date","lie","dist_yd",
-        "chip_leave_ft","chip_depth_ft_signed","chip_lateral_ft_signed",
-        "putt1_ft","putt1_depth_ft_signed","putt1_lateral_ft_signed",
+        "chip_leave_ft","chip_depth_ft","chip_lateral_ft",
+        "putt1_ft","putt1_depth_ft","putt1_lateral_ft",
         "putt2_ft","putt3_ft","score"
       ];
       const out = [cols];
