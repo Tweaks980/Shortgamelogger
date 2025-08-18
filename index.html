@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Par2 – Editor + Stats/Trends (Single File)</title>
+<title>Par2 – Home + Editor + Stats/Trends</title>
 
 <!-- ======== EDITOR (DARK) THEME ======== -->
 <style>
@@ -11,28 +11,9 @@
     --bg:#0f1115; --panel:#1a1f24; --panel-2:#11161b; --text:#e8ecf1;
     --muted:#9aa7b2; --accent:#2ea043; --accent-2:#3b82f6; --btn:#2b3138; --btn-active:#355043;
     --border:#2a3138; --radius:14px;
+    --blue:#3b82f6; --green:#22c55e; --red:#ef4444; --purple:#a855f7;
   }
-  :root{
-  --blue:#3b82f6;   /* indigo/blue */
-  --green:#22c55e;  /* emerald   */
-  --red:#ef4444;    /* red       */
-  --purple:#a855f7; /* purple    */
-}
 
-/* colored buttons just for the top editor bar */
-header.editorbar .btn[data-color]{
-  border-color:transparent;
-  color:#fff;
-  font-weight:800;
-}
-header.editorbar .btn[data-color="blue"]   { background:var(--blue); }
-header.editorbar .btn[data-color="green"]  { background:var(--green); color:#08210a; } /* darker text on green reads better */
-header.editorbar .btn[data-color="red"]    { background:var(--red); }
-header.editorbar .btn[data-color="purple"] { background:var(--purple); }
-
-/* simple affordances */
-header.editorbar .btn[data-color]:hover { filter:brightness(1.06); }
-header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--text);
     font-family:-apple-system,BlinkMacSystemFont,Inter,Arial,sans-serif}
@@ -49,10 +30,19 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
     padding:14px 18px; border-radius:14px; font-size:16px}
   .hidden{display:none}
 
+  header.editorbar .btn[data-color]{border-color:transparent;color:#fff;font-weight:800}
+  header.editorbar .btn[data-color="blue"]{background:var(--blue)}
+  header.editorbar .btn[data-color="green"]{background:var(--green);color:#08210a}
+  header.editorbar .btn[data-color="red"]{background:var(--red)}
+  header.editorbar .btn[data-color="purple"]{background:var(--purple)}
+  header.editorbar .btn[data-color]:hover{filter:brightness(1.06)}
+  header.editorbar .btn[data-color]:active{transform:translateY(1px)}
+
   h1.sessionTitle{margin:4px 0 0;text-align:center;font-size:20px;font-weight:800}
   h2{margin:0 0 8px 0;font-size:14px;color:var(--muted);font-weight:600}
   .h2-center-white{color:var(--text); text-align:center;}
 
+  /* helper toasts */
   .helpwrap{position:relative; display:flex; justify-content:center; align-items:center;}
   .helpbtn{cursor:help}
   .tip{position:absolute; top:100%; left:50%; transform:translateX(-50%);
@@ -80,8 +70,8 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
   .counter button{width:36px;height:36px;background:var(--btn);color:var(--text);
     border:1px solid var(--border);border-radius:10px}
 
-  .chips{display:flex;gap:10px;flex-wrap:wrap; overflow:visible}
-  .pill{padding:10px 12px;border-radius:14px;cursor:pointer; color:var(--muted); border-color:var(--border); position:relative}
+  .chips{display:flex;gap:10px;flex-wrap:wrap}
+  .pill{padding:10px 12px;border-radius:14px;cursor:pointer; color:#9aa7b2; border-color:var(--border)}
   .pill.active{outline:2px solid var(--accent)}
   .pill[data-lie="Fairway"].active  { color:#7CFC00; border-color:#375b37; outline-color:#7CFC00 }
   .pill[data-lie="Rough"].active    { color:#ffa74d; border-color:#6f5131; outline-color:#ffa74d }
@@ -100,8 +90,8 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
   .stepper .step { width:36px; height:36px; background:var(--btn); border:1px solid var(--border); border-radius:10px; font-size:16px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
   .readout { display:flex; align-items:center; justify-content:center; gap:6px; font-weight:800; font-size:20px; }
   .readout input.readnum{ width:clamp(42px, 18vw, 70px); text-align:center; font-weight:800; font-size:20px; background:transparent; border:none; outline:none; color:var(--text); }
-  .readout .unit { font-weight:600; font-size:14px; color:var(--text); opacity:.9 }
-  .modeTag { display:inline-block; text-align:center; border-radius:999px; padding:6px 10px; border:1px solid var(--border); background:var(--panel-2); font-weight:600; font-size:13px; color:var(--text) }
+  .readout .unit { font-weight:600; font-size:14px; color:#fff; opacity:.9 }
+  .modeTag { display:inline-block; text-align:center; border-radius:999px; padding:6px 10px; border:1px solid var(--border); background:var(--panel-2); font-weight:600; font-size:13px; color:#fff }
 
   .row.divider-2cols > .field{
     display:grid;
@@ -155,23 +145,42 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
   }
 </style>
 
-<!-- ======== STATS/TRENDS (LIGHT) THEME – scoped ======== -->
+<!-- ======== HOME + TRENDS (LIGHT) THEME – scoped ======== -->
 <style>
+  /* HOME / landing */
+  #view-home{background:#fafaf7;color:#0b1220;min-height:100vh}
+  #view-home .homewrap{max-width:520px;margin:0 auto;padding:24px 16px}
+  #view-home .title{display:flex;align-items:center;gap:10px;font-weight:900;font-size:36px;letter-spacing:-.02em;margin:10px 0 4px}
+  #view-home .subtitle{font-weight:700;color:#1f2937;margin:0 0 18px}
+  #view-home .card{background:#fff;border:1px solid #e6ebf1;border-radius:18px;padding:18px}
+  #view-home ul{margin:10px 0 0 0;padding-left:20px}
+  #view-home li{margin:8px 0;font-weight:700;color:#0b1220}
+  #homeTrendsBtn{ display:none !important; }
+  #view-home .actions{
+    display:flex;
+    gap:10px;
+    margin-top:16px;
+    flex-wrap:wrap;
+    justify-content:center; /* centers the Start Session button */
+  }
+  #view-home .btnL{appearance:none;border:1px solid #e6ebf1;background:#2563eb;color:#fff;
+    padding:12px 16px;border-radius:12px;font-weight:800;cursor:pointer}
+  #view-home .btnL.ghost{background:#fff;color:#0b1220}
+
+  /* TRENDS light theme */
   #view-trends{background:#f7f9fc;color:#0b1220;min-height:100vh}
   #view-trends .twrap{max-width:420px; margin:0 auto; padding:14px}
-  /* header bar with arrow + title + export */
   #view-trends .hdr{display:flex; align-items:center; gap:12px; padding:12px 14px}
   #view-trends .hdr .back{width:36px;height:36px;border-radius:999px;background:#eef2f7;border:1px solid #e6ebf1; display:flex;align-items:center;justify-content:center; font-size:20px; color:#111;}
   #view-trends .hdr h2{flex:1; text-align:center; margin:0; font-size:20px; font-weight:800}
-  #view-trends .tbtn{appearance:none; border:1px solid #e6ebf1; background:#fff; color:#0b1220; padding:10px 12px; border-radius:10px; font-weight:700; cursor:pointer; text-decoration:none}
+  #view-trends .tools{display:flex; gap:6px}
+  #view-trends .tbtn{appearance:none; border:1px solid #e6ebf1; background:#fff; color:#0b1220; padding:8px 10px; border-radius:10px; font-weight:700; cursor:pointer; text-decoration:none; font-size:13px}
   #view-trends .tbtn.primary{ background:#2563eb; color:#fff; border-color:transparent }
   #view-trends .tbtn.danger{ background:#ef4444; color:#fff; border-color:#ef4444 }
-  #view-trends .grow{flex:1}
 
   #view-trends .pickRow{display:flex; gap:8px; align-items:center; padding:0 14px 8px}
   #view-trends select{flex:1; height:40px; border:1px solid #e6ebf1; border-radius:10px; padding:0 10px; background:#fff; font-weight:700}
 
-  /* bigger tab buttons */
   #view-trends .tseg{display:flex; gap:8px; background:#eef2f7; border:1px solid #e6ebf1; padding:8px; border-radius:999px; justify-content:center; position:sticky; top:0; z-index:5}
   #view-trends .tseg button{appearance:none; border:none; background:transparent; padding:10px 16px; border-radius:999px; font-weight:800; font-size:15px; color:#334155; cursor:pointer}
   #view-trends .tseg button.active{background:#fff; color:#2563eb; box-shadow:0 1px 2px rgba(0,0,0,.06)}
@@ -180,38 +189,55 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
   #view-trends .kpi{background:#fff; border:1px solid #e6ebf1; border-radius:16px; padding:14px}
   #view-trends .kpi .big{font-size:40px; font-weight:800; line-height:1; letter-spacing:-.02em}
   #view-trends .kpi .label{color:#6b7280; margin-top:6px; font-weight:600}
-
-  /* smaller lie chips to fit one row */
   #view-trends .chips{display:flex; gap:6px; flex-wrap:nowrap; overflow-x:auto; margin-bottom:12px}
   #view-trends .chip{padding:4px 8px; border:1px solid #e6ebf1; border-radius:999px; background:#f4f7fb; color:#334155; font-weight:700; cursor:pointer; font-size:12px; white-space:nowrap}
   #view-trends .chip.active{background:#fff; color:#0f172a; box-shadow:0 1px 2px rgba(0,0,0,.06)}
-
   #view-trends .card{background:#fff; border:1px solid #e6ebf1; border-radius:16px; overflow:hidden; margin-top:12px}
   #view-trends table{width:100%; border-collapse:separate; border-spacing:0}
   #view-trends th,#view-trends td{padding:14px 12px; text-align:left}
   #view-trends thead th{background:#f3f6fb; color:#1f2937; font-weight:800; font-size:14px}
   #view-trends tbody td{border-top:1px solid #e6ebf1; font-weight:700; color:#0b1220}
   #view-trends .right{text-align:right}
-  #view-trends .neg, #view-trends .pos, #view-trends .avg.good, #view-trends .avg.bad{ color:#0b1220 !important }
-
   #view-trends .notice{font-size:12px; color:#6b7280; margin-top:8px}
 </style>
 </head>
 
 <body>
-<!-- ========================= VIEW SWITCHER ========================= -->
-<div id="view-editor">
+<!-- ========================= HOME / LANDING ========================= -->
+<div id="view-home">
+  <div class="homewrap">
+    <div class="title">⛳ Par2<span style="font-weight:700">—</span></div>
+    <div class="subtitle">The Short Game Challenge</div>
+    <div class="card">
+      <ul>
+        <li>Every hole is a par 2</li>
+        <li>Start with a chip from a set distance and lie</li>
+        <li>Track where you leave it, then putt out</li>
+        <li>The app logs your score, distance control, and dispersion</li>
+      </ul>
+      <div class="actions">
+        <button class="btnL" id="startSessionBtn">Start Session</button>
+        <button class="btnL.ghost btnL" id="homeTrendsBtn">View Stats/Trends</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========================= EDITOR ========================= -->
+<div id="view-editor" class="hidden">
 <header class="wrap editorbar">
-  <button class="btn" data-color="purple" id="exportBtn">Export CSV</button>
-  <button class="btn" data-color="red"    id="clearBtn">Clear</button>
   <button class="btn" data-color="green"  id="saveSessionBtn" title="Save current session to Stats/Trends">Finish Session</button>
+  <button class="btn" data-color="red"    id="newSessionBtn" title="Start a fresh session">New Session</button>
+  <button class="btn" data-color="purple" id="exportBtn">Export CSV</button>
   <button class="btn" data-color="blue"   id="goTrendsBtn" title="Open Stats/Trends">Stats/Trends</button>
 </header>
 
-  <!-- NEW: session header -->
   <section class="wrap"><h1 id="sessionHeader" class="sessionTitle">Session: —</h1></section>
 
-  <section class="wrap panel"><div id="summaryBarTop">Par: 0 | Gross: 0 | Up/Down: 0% | To Par: 0</div></section>
+  <!-- fixed: use an inner .panel so background aligns with the rest -->
+  <section class="wrap">
+    <div class="panel"><div id="summaryBarTop">Par: 0 | Gross: 0 | Up/Down: 0% | To Par: 0</div></div>
+  </section>
 
   <main class="wrap" id="topOfApp">
     <section class="panel">
@@ -393,8 +419,7 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
       </h2>
       <canvas id="chipChart" width="380" height="280"></canvas>
       <div class="filterbar subtle" id="dynFilterRow"></div>
-      <div style="display:flex;justify-content:space-between;margin-top:8px;flex-wrap:wrap;gap:8px;">
-        <button class="rowbtn" id="exportChartBtn">Export Chart PNG</button>
+      <div style="display:flex;justify-content:flex-end;margin-top:8px;flex-wrap:wrap;gap:8px;">
         <button class="rowbtn" id="resetFiltersBtn">Reset filters</button>
       </div>
     </section>
@@ -403,11 +428,15 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
 
 <!-- ========================= TRENDS VIEW ========================= -->
 <div id="view-trends" class="hidden">
-  <!-- top header -->
   <div class="hdr">
     <button class="back" id="backToEditor" aria-label="Back">‹</button>
     <h2>Stats/Trends</h2>
-    <button class="tbtn" id="exportAllCSV">Export CSV</button>
+    <div class="tools">
+      <button class="tbtn" id="exportAllCSV">CSV</button>
+      <button class="tbtn" id="exportJSONTrends" title="Backup JSON">JSON</button>
+      <label class="tbtn" for="importJSONInput" title="Import JSON">Import</label>
+      <input type="file" id="importJSONInput" accept="application/json" hidden />
+    </div>
   </div>
 
   <div class="pickRow">
@@ -511,45 +540,39 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
 </div>
 
 <script>
-  /* ===== Helpers (NEW: local date + CSV safety + HTML escape) ===== */
+  /* ===== Helpers ===== */
   const pad2 = n => String(n).padStart(2,'0');
-  const todayLocalISO = () => {
-    const d = new Date();
-    return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
-  };
+  const todayLocalISO = () => { const d = new Date(); return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; };
   const formatLocalISO = (d) => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
-  const parseISOAsLocal = (iso) => {
-    const [y,m,d] = (iso||'').split('-').map(x=>parseInt(x,10));
-    if(!y||!m||!d) return new Date();
-    return new Date(y, m-1, d); // local midnight
-  };
-
-  // Escape any string before inserting into innerHTML
-  const escapeHTML = (s) => String(s)
-    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
-    .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
-
-  // Harden CSV cells against Excel/Sheets formula injection + quoting
+  const parseISOAsLocal = (iso) => { const [y,m,d] = (iso||'').split('-').map(x=>parseInt(x,10)); if(!y||!m||!d) return new Date(); return new Date(y, m-1, d); };
+  const escapeHTML = (s) => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
   const sanitizeCsvCell = (cell) => {
-    let s = String(cell ?? "");
-    s = s.replace(/\r/g,"").replace(/\n/g," ");    // normalize newlines
-    if (/^[=+\-@]/.test(s)) s = "'" + s;          // neutralize formulas
-    if (/[",]/.test(s)) s = '"' + s.replace(/"/g,'""') + '"'; // quote/escape
-    return s;
-  };
+  let s = String(cell ?? "").replace(/\r/g, "").replace(/\n/g, " ");
+  const t = s.trim();
+  const isPureNumber = /^-?\d+(?:\.\d+)?$/.test(t); // integers/decimals, optional leading -
 
-  /* ===== Shared: view switching ===== */
-  const viewEditor  = document.getElementById('view-editor');
-  const viewTrends  = document.getElementById('view-trends');
+  // Only harden if it starts like a formula AND it's not just a number
+  if (!isPureNumber && /^[=+\-@]/.test(t)) s = "'" + s;
+
+  if (/[",]/.test(s)) s = '"' + s.replace(/"/g, '""') + '"';
+  return s;
+};
+
+  /* ===== View switching ===== */
+  const viewHome   = document.getElementById('view-home');
+  const viewEditor = document.getElementById('view-editor');
+  const viewTrends = document.getElementById('view-trends');
   function showView(which){
-    const t = which === 'trends';
-    viewEditor.classList.toggle('hidden', t);
-    viewTrends.classList.toggle('hidden', !t);
+    viewHome.classList.toggle('hidden',   which!=='home');
+    viewEditor.classList.toggle('hidden', which!=='editor');
+    viewTrends.classList.toggle('hidden', which!=='trends');
   }
-  document.getElementById('goTrendsBtn').onclick   = ()=>{ initTrends().then(()=>showView('trends')); };
-  document.getElementById('backToEditor').onclick  = ()=> showView('editor');
+  document.getElementById('startSessionBtn').onclick = ()=> showView('editor');
+  document.getElementById('homeTrendsBtn').onclick   = ()=>{ initTrends().then(()=>showView('trends')); };
+  document.getElementById('goTrendsBtn').onclick     = ()=>{ initTrends().then(()=>showView('trends')); };
+  document.getElementById('backToEditor').onclick    = ()=> showView('editor');
 
-  /* ===== IndexedDB (shared) ===== */
+  /* ===== IndexedDB ===== */
   const DB_NAME = 'par2';
   function openPar2DB(){
     return new Promise((res, rej)=>{
@@ -618,6 +641,14 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
       tx.onerror = ()=> rej(tx.error);
     });
   }
+  function idbDeleteWholeDB(){
+    return new Promise((res, rej)=>{
+      const r = indexedDB.deleteDatabase(DB_NAME);
+      r.onsuccess=()=>res();
+      r.onerror = ()=>rej(r.error);
+      r.onblocked=()=>alert('Close other tabs using this app to finish importing.');
+    });
+  }
 
   /* ===== Editor logic ===== */
   const r0 = (n) => Math.round(Number(n) || 0);
@@ -627,11 +658,14 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
   let colorMode = "lie";
   const activeCats = { Fairway:true, Rough:true, Sand:true, Recovery:true, d1:true, d2:true, d3:true };
   const includeChipInsInUpDown = true;
-  let workingSessionId = ''; // track when editing an existing session
+  let workingSessionId = '';
 
   const holeInput = document.getElementById("hole");
   const dateInput = document.getElementById("date");
   const saveBtn   = document.getElementById("saveBtn");
+  const putt1El = document.getElementById('putt1Dist');
+  const putt2El = document.getElementById('putt2');
+  const putt3El = document.getElementById('putt3');
 
   function updateSaveLabel(){
     const n = parseInt(holeInput.value||"",10);
@@ -642,15 +676,13 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
   document.getElementById("holePlus").onclick  = () => { holeInput.value = parseInt(holeInput.value||"1")+1; onHoleChange(); };
   holeInput.addEventListener('change', onHoleChange);
 
-  /* LOCAL date default (replaces previous UTC/ISO usage) */
   dateInput.value = todayLocalISO();
   updateSaveLabel();
 
-  // Turn "YYYY-MM-DD" into "MM-DD-YYYY"
   function formatMMDDYYYY(iso){
     if (!iso) return "";
     const [y, m, d] = iso.split("-");
-    if (!y || !m || !d) return iso; // fallback
+    if (!y || !m || !d) return iso;
     return `${m.padStart(2,"0")}-${d.padStart(2,"0")}-${y}`;
   }
 
@@ -663,7 +695,7 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
       const sameDay = sessions
         .filter(s => (s.dateStart||'') === dateStr)
         .sort((a,b)=> (a.createdAt||'').localeCompare(b.createdAt||''));
-      let n = sameDay.length + 1; // default for new session
+      let n = sameDay.length + 1;
       if (workingSessionId){
         const idx = sameDay.findIndex(s=> s.id === workingSessionId);
         if (idx >= 0) n = idx + 1;
@@ -700,7 +732,7 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
   const lieButtons = document.querySelectorAll("#lieChips .pill");
   function updateChipVisibility(scrollOnShow=false){
     const sec = document.getElementById("chipSection");
-    const shouldShow = !!selectedLie;
+    const shouldShow = !!selectedLie; // chip stepper only appears when a lie is chosen
     sec.classList.toggle("hidden", !shouldShow);
     if (shouldShow && scrollOnShow) smoothFocus(sec);
   }
@@ -805,48 +837,13 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
   lineLeftP1.onclick  = ()=>{ pendingLineP1=false;  const prev=lineSignedP1;  lineSignedP1  = clamp(lineSignedP1  - 1, -99, 99); if(prev===-99) capLineP1.classList.add('show');  updateP1StepperUI(); calcAll(); setTimeout(()=>capLineP1.classList.remove('show'),1200); };
   lineRightP1.onclick = ()=>{ pendingLineP1=false;  const prev=lineSignedP1;  lineSignedP1  = clamp(lineSignedP1  + 1, -99, 99); if(prev===99)  capLineP1.classList.add('show');  updateP1StepperUI(); calcAll(); setTimeout(()=>capLineP1.classList.remove('show'),1200); };
 
-  addAutoRepeat(depthDownP1, ()=>{ const prev=depthSignedP1; depthSignedP1=clamp(depthSignedP1-1,-99,99); if(prev===-99) capDepthP1.classList.add('show'); updateP1StepperUI(); calcAll(); setTimeout(()=>capDepthP1.classList.remove('show'),1200); });
-  addAutoRepeat(depthUpP1,   ()=>{ const prev=depthSignedP1; depthSignedP1=clamp(depthSignedP1+1,-99,99); if(prev===99)  capDepthP1.classList.add('show'); updateP1StepperUI(); calcAll(); setTimeout(()=>capDepthP1.classList.remove('show'),1200); });
-  addAutoRepeat(lineLeftP1,  ()=>{ const prev=lineSignedP1;  lineSignedP1 =clamp(lineSignedP1 -1,-99,99); if(prev===-99) capLineP1.classList.add('show');  updateP1StepperUI(); calcAll(); setTimeout(()=>capLineP1.classList.remove('show'),1200); });
-  addAutoRepeat(lineRightP1, ()=>{ const prev=lineSignedP1;  lineSignedP1 =clamp(lineSignedP1 +1,-99,99); if(prev===99)  capLineP1.classList.add('show');  updateP1StepperUI(); calcAll(); setTimeout(()=>capLineP1.classList.remove('show'),1200); });
-
-  depthInputP1.addEventListener('focus', ()=> depthInputP1.select());
-  lineInputP1 .addEventListener('focus', ()=> lineInputP1.select());
-  depthInputP1.addEventListener('input', ()=>{
-    const r = normalizeSignedText(depthInputP1);
-    pendingDepthP1=r.pending; depthSignedP1=r.num; if(!r.pending) depthInputP1.value=r.text; if(r.capped) capDepthP1.classList.add('show'), setTimeout(()=>capDepthP1.classList.remove('show'),1200);
-    updateP1StepperUI(); calcAll();
-  });
-  lineInputP1 .addEventListener('input', ()=>{
-    const r = normalizeSignedText(lineInputP1 );
-    pendingLineP1=r.pending;  lineSignedP1=r.num; if(!r.pending) lineInputP1.value=r.text;  if(r.capped) capLineP1.classList.add('show'), setTimeout(()=>capLineP1.classList.remove('show'),1200);
-    updateP1StepperUI(); calcAll();
-  });
-
-  const putt1Dist   = document.getElementById("putt1Dist");
-  const p2          = document.getElementById("putt2");
-  const p3          = document.getElementById("putt3");
-  const scoreEl     = document.getElementById("score");
-
   ["putt1Dist","putt2","putt3"].forEach(id=>{
     const el = document.getElementById(id);
     el.addEventListener("change", () => { el.value = el.value === "" ? "" : r0(el.value); calcAll(); });
     el.addEventListener("input", calcAll);
   });
 
-  function leaveFromSigned(dSigned, lSigned){
-    const D = Math.abs(r0(dSigned)), L = Math.abs(r0(lSigned));
-    const leave = Math.sqrt(D*D + L*L);
-    return { leave:r0(leave), dSigned:r0(dSigned), lSigned:r0(lSigned),
-      depthDir: dSigned<0? 'Short' : dSigned>0? 'Long' : 'Exact',
-      lineDir:  lSigned<0? 'Left'  : lSigned>0 ? 'Right': 'Straight' };
-  }
-
-  function updateVisibility(chipHasInput, p1HasInput){
-    document.getElementById("sectionP1").classList.toggle("hidden", !chipHasInput);
-    document.getElementById("sectionP23").classList.toggle("hidden", !p1HasInput);
-  }
-
+  // helper toasts (open/close)
   const chipHelpWrap = document.getElementById('chipHelpWrap');
   const chipHelpBtn  = document.getElementById('chipHelpBtn');
   const puttHelpWrap = document.getElementById('puttHelpWrap');
@@ -866,23 +863,28 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
   document.addEventListener('click', closeAllTips);
   window.addEventListener('scroll', closeAllTips, {passive:true});
 
+  function leaveFromSigned(dSigned, lSigned){
+    const D = Math.abs(r0(dSigned)), L = Math.abs(r0(lSigned));
+    const leave = Math.sqrt(D*D + L*L);
+    return { leave:r0(leave), dSigned:r0(dSigned), lSigned:r0(lSigned),
+      depthDir: dSigned<0? 'Short' : dSigned>0? 'Long' : 'Exact',
+      lineDir:  lSigned<0? 'Left'  : lSigned>0 ? 'Right': 'Straight' };
+  }
+
+  function updateVisibility(chipHasInput, p1HasInput){
+    document.getElementById("sectionP1").classList.toggle("hidden", !chipHasInput);
+    document.getElementById("sectionP23").classList.toggle("hidden", !p1HasInput);
+  }
+
   function updateDerivedBubbles(chip, p1){
     const p1Tip = document.getElementById('putt1HeaderTip');
-    if (p1Tip){
-      if (Math.abs(depthSigned) || Math.abs(lineSigned)){
-        p1Tip.textContent = `Derived leave from chip: ${chip.leave} ft (${chip.depthDir} ${Math.abs(chip.dSigned)} / ${chip.lineDir} ${Math.abs(chip.lSigned)})`;
-      } else {
-        p1Tip.textContent = 'Derived leave from chip: —';
-      }
-    }
+    p1Tip.textContent = (Math.abs(depthSigned)||Math.abs(lineSigned))
+      ? `Derived leave from chip: ${chip.leave} ft (${chip.depthDir} ${Math.abs(chip.dSigned)} / ${chip.lineDir} ${Math.abs(chip.lSigned)})`
+      : 'Derived leave from chip: —';
     const p23Tip = document.getElementById('p23HeaderTip');
-    if (p23Tip){
-      if (Math.abs(depthSignedP1) || Math.abs(lineSignedP1)){
-        p23Tip.textContent = `Derived leave after Putt 1: ${p1.leave} ft (${p1.depthDir} ${Math.abs(p1.dSigned)} / ${p1.lineDir} ${Math.abs(p1.lSigned)})`;
-      } else {
-        p23Tip.textContent = 'Derived leave after Putt 1: —';
-      }
-    }
+    p23Tip.textContent = (Math.abs(depthSignedP1)||Math.abs(lineSignedP1))
+      ? `Derived leave after Putt 1: ${p1.leave} ft (${p1.depthDir} ${Math.abs(p1.dSigned)} / ${p1.lineDir} ${Math.abs(p1.lSigned)})`
+      : 'Derived leave after Putt 1: —';
   }
 
   function calcAll(){
@@ -891,8 +893,10 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
 
     updateDerivedBubbles(chip, p1);
 
-    const chipHasInput = (Math.abs(depthSigned) || Math.abs(lineSigned)) > 0;
-    const p1HasInput   = (Math.abs(depthSignedP1) || Math.abs(lineSignedP1)) > 0;
+    // NEW: visibility now also depends on selections (distance & lie)
+    const hasSelections = !!(selectedDist && selectedLie);
+    const chipHasInput = hasSelections && ((Math.abs(depthSigned) || Math.abs(lineSigned)) > 0);
+    const p1HasInput   = chipHasInput && ((Math.abs(depthSignedP1) || Math.abs(lineSignedP1)) > 0);
 
     document.getElementById("putt1Dist").value = chipHasInput && chip.leave>0 ? chip.leave : "";
     document.getElementById("putt2").value     = p1HasInput   && p1.leave>0   ? p1.leave   : "";
@@ -900,9 +904,9 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
     updateVisibility(chipHasInput, p1HasInput);
 
     let strokes = 1, putts = 0;
-    if (r0(putt1Dist.value) > 0) putts++;
-    if (r0(p2.value) > 0) putts++;
-    if (r0(p3.value) > 0) putts++;
+    if (r0(putt1El.value) > 0) putts++;
+    if (r0(putt2El.value) > 0) putts++;
+    if (r0(putt3El.value) > 0) putts++;
     strokes += putts;
     if (chip.leave===0 && putts===0) strokes = 1;
     document.getElementById("score").textContent = (!selectedDist || !selectedLie) ? "—" : strokes;
@@ -948,8 +952,9 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
     document.getElementById("putt2").value = r.p2 || '';
     document.getElementById("putt3").value = r.p3 || '';
 
-    const chipHasInput = (Math.abs(depthSigned) || Math.abs(lineSigned)) > 0;
-    const p1HasInput   = (Math.abs(depthSignedP1) || Math.abs(lineSignedP1)) > 0;
+    const hasSelections = !!(selectedDist && selectedLie);
+    const chipHasInput = hasSelections && ((Math.abs(depthSigned) || Math.abs(lineSigned)) > 0);
+    const p1HasInput   = chipHasInput && ((Math.abs(depthSignedP1) || Math.abs(lineSignedP1)) > 0);
     updateVisibility(chipHasInput, p1HasInput);
     calcAll();
   }
@@ -963,7 +968,6 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
       const tr = document.createElement("tr");
       tr.dataset.idx = idx;
 
-      // Build cells safely (avoid raw innerHTML with untrusted content)
       const cells = [
         String(r.hole),
         formatMMDDYYYY(r.date),
@@ -974,14 +978,12 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
         r.p3 ? `${r.p3} ft` : ""
       ].map(escapeHTML);
 
-      // First 7 cells
       for (let i=0;i<7;i++){
         const td=document.createElement('td');
-        td.innerHTML = cells[i]; // values are escaped
+        td.innerHTML = cells[i];
         tr.appendChild(td);
       }
 
-      // Score + delete button
       const tdScore = document.createElement('td');
       tdScore.className = 'score-cell';
       tdScore.innerHTML = `${escapeHTML(String(r.score))}<button class="rowbtn" data-del="${idx}" title="Delete">🗑</button>`;
@@ -998,9 +1000,8 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
     });
 
     const holes = saved.length, par = holes*2, total = saved.reduce((s,r)=>s+(Number(r.score)||0),0);
-    const attempts = holes;
     const successes = saved.filter(r => (includeChipInsInUpDown ? r.score <= 2 : r.score === 2)).length;
-    const updownPct = attempts ? Math.round((successes/attempts)*100) : 0;
+    const updownPct = holes ? Math.round((successes/holes)*100) : 0;
     const over = total - par; const overLabel = over > 0 ? `+${over}` : `${over}`;
     document.getElementById("summaryBarTop").textContent =
       `Par: ${par} | Gross: ${total} | Up/Down: ${updownPct}% | To Par: ${overLabel}`;
@@ -1008,20 +1009,70 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
     renderFilterRow(); renderChart();
   }
 
-  function downloadBlob(filename, blob){
+  /* ========== Download helpers ========== */
+
+  // 1) Anchor/ObjectURL download: keep CSV behavior exactly like the old flow.
+  function downloadViaAnchor(filename, blob){
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = filename;
-    const supportsDownload = typeof a.download !== 'undefined';
-    const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    if (!supportsDownload || isiOS){
-      // Safer new tab
-      window.open(url, '_blank', 'noopener,noreferrer');
-    } else {
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    }
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
     setTimeout(()=>URL.revokeObjectURL(url), 1500);
   }
 
+  // 2) JSON: prefer iOS Web Share with files, else fall back to anchor, then data URL.
+  function downloadJSONSmart(filename, blob){
+    const file = new File([blob], filename, { type: blob.type || 'application/json' });
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      navigator.share({ files: [file], title: filename })
+        .catch(()=> downloadViaAnchor(filename, blob));
+      return;
+    }
+
+    // Anchor path
+    try {
+      downloadViaAnchor(filename, blob);
+      return;
+    } catch {}
+
+    // Very old fallback
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result;
+      const win = window.open(dataUrl, '_blank', 'noopener,noreferrer');
+      if (!win) window.location.href = dataUrl;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  /* ===== Export CSV (editor) — old Safari-friendly flow ===== */
+  document.getElementById("exportBtn").addEventListener("click", () => {
+    const cols = [
+      "hole","date","lie","dist_yd",
+      "chip_leave_ft","chip_depth_ft","chip_lateral_ft","chip_depth_dir","chip_line_dir",
+      "putt1_ft","putt1_depth_ft","putt1_lateral_ft","putt1_depth_dir","putt1_line_dir",
+      "putt2_ft","putt3_ft","score"
+    ];
+    const rows = [cols];
+    saved.forEach(r=>{
+      rows.push([
+        r.hole, formatMMDDYYYY(r.date), r.lie, r.dist,
+        r.chipLeave, r.chipDepthSigned, r.chipLateralSigned, r.chipDepthDir, r.chipLineDir,
+        r.p1 || "", r.p1DepthSigned || "", r.p1LateralSigned || "", r.p1DepthDir || "", r.p1LineDir || "",
+        r.p2 || "", r.p3 || "", r.score
+      ]);
+    });
+    const csv = rows.map(row => row.map(sanitizeCsvCell).join(",")).join("\n");
+    const blob = new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8;"});
+    downloadViaAnchor('par2_export.csv', blob);
+  });
+
+  /* ===== Save Hole + Undo ===== */
   document.getElementById("saveBtn").addEventListener("click", () => {
     if (!selectedDist || !selectedLie){ alert('Please select a Chip Starting Distance and a Lie before saving.'); return; }
     const hole = parseInt(holeInput.value||"1",10);
@@ -1031,9 +1082,9 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
     const p1   = leaveFromSigned(depthSignedP1, lineSignedP1);
 
     let strokes = 1, putts = 0;
-    const p1d = r0(putt1Dist.value); if (p1d>0) putts++;
-    const p2d = r0(p2.value);       if (p2d>0) putts++;
-    const p3d = r0(p3.value);       if (p3d>0) putts++;
+    const p1d = r0(putt1El.value); if (p1d>0) putts++;
+    const p2d = r0(putt2El.value); if (p2d>0) putts++;
+    const p3d = r0(putt3El.value); if (p3d>0) putts++;
     strokes += putts;
     if (chip.leave===0 && putts===0) strokes = 1;
 
@@ -1062,49 +1113,22 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
-  document.getElementById("exportBtn").addEventListener("click", () => {
-    const cols = [
-      "hole","date","lie","dist_yd",
-      "chip_leave_ft","chip_depth_ft_signed","chip_lateral_ft_signed","chip_depth_dir","chip_line_dir",
-      "putt1_ft","putt1_depth_ft_signed","putt1_lateral_ft_signed","putt1_depth_dir","putt1_line_dir",
-      "putt2_ft","putt3_ft","score"
-    ];
-    const rows = [cols];
-    saved.forEach(r=>{
-      rows.push([
-        r.hole, formatMMDDYYYY(r.date), r.lie, r.dist,
-        r.chipLeave, r.chipDepthSigned, r.chipLateralSigned, r.chipDepthDir, r.chipLineDir,
-        r.p1 || "", r.p1DepthSigned || "", r.p1LateralSigned || "", r.p1DepthDir || "", r.p1LineDir || "",
-        r.p2 || "", r.p3 || "", r.score
-      ]);
-    });
-
-    // Sanitize every cell before join
-    const csv = rows.map(row => row.map(sanitizeCsvCell).join(",")).join("\n");
-    const blob = new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8;"});
-    downloadBlob('par2_export.csv', blob);
-  });
-
-  document.getElementById("clearBtn").addEventListener("click", () => {
-    if (!confirm('Clear EVERYTHING on this screen?')) return;
-    saved = []; holeInput.value = 1; dateInput.value = todayLocalISO();
-    workingSessionId = ''; // stop editing mode
-    clearUISelections(); renderLog();
-    document.getElementById('summaryBarTop').textContent = 'Par: 0 | Gross: 0 | Up/Down: 0% | To Par: 0';
+  // NEW: New Session button
+  document.getElementById('newSessionBtn').addEventListener('click', ()=>{
+    if (!confirm('Would you like to start a new session? Current session will be lost unless saved.')) return;
+    saved = [];
+    workingSessionId = '';
+    renderLog();
+    holeInput.value = 1;
+    dateInput.value = todayLocalISO();
     updateSaveLabel();
+    clearUISelections();
     document.getElementById('chartPanel').classList.add('hidden');
     document.getElementById('toggleChartBtn').textContent = 'Show Dispersion Chart';
     updateSessionHeader();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top:0, behavior:'smooth' });
   });
 
-  document.querySelectorAll('#colorModeSeg button').forEach(b=>{
-    b.addEventListener('click', ()=>{
-      document.querySelectorAll('#colorModeSeg button').forEach(x=>x.classList.remove('active'));
-      b.classList.add('active'); colorMode = b.dataset.mode;
-      renderFilterRow(); renderChart();
-    });
-  });
   document.getElementById('resetFiltersBtn').addEventListener('click', ()=>{
     Object.keys(activeCats).forEach(k=> activeCats[k] = true); renderFilterRow(); renderChart();
   });
@@ -1122,6 +1146,17 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
       chartPanel.classList.add('hidden');
       toggleChartBtn.textContent = 'Show Dispersion Chart';
     }
+  });
+
+  // NEW: wire color-mode toggle (Lie / Distance)
+  document.querySelectorAll('#colorModeSeg button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('#colorModeSeg button').forEach(x=>x.classList.remove('active'));
+      btn.classList.add('active');
+      colorMode = btn.dataset.mode;   // 'lie' or 'distance'
+      renderFilterRow();
+      renderChart();
+    });
   });
 
   function renderFilterRow(){
@@ -1222,7 +1257,6 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
       const sessions = tx.objectStore('sessions');
       const holes = tx.objectStore('holes');
 
-      // Build min/max using LOCAL dates derived from saved rows
       const dateStrs = saved.map(r=> r.date || todayLocalISO());
       const datesLocal = dateStrs.map(parseISOAsLocal);
       const minDate = new Date(Math.min(...datesLocal.map(d=>d.getTime())));
@@ -1309,7 +1343,6 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
     const sel = document.getElementById('sessionPick');
     sel.innerHTML = '<option value="">All sessions</option>';
 
-    // Group sessions by start date and sort each day's sessions by createdAt
     const byDate = {};
     SESSIONS.forEach(s=>{
       const k = s.dateStart || '';
@@ -1358,22 +1391,15 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
     const byB = {'10–25':[], '30–45':[], '50–65':[]};
     rows.forEach(r=> byB[chipBucket(r.dist)].push(r));
 
-    function avgMag(list){
-      if (!list.length) return 0;
-      return list.reduce((s,r)=> s + Math.hypot(r.chipDepthSigned||0, r.chipLateralSigned||0), 0) / list.length;
-    }
-    function signedMean(list, key){
-      if (!list.length) return 0;
-      return list.reduce((s,r)=> s + (Number(r[key])||0), 0) / list.length;
-    }
+    function avgMag(list){ if (!list.length) return 0; return list.reduce((s,r)=> s + Math.hypot(r.chipDepthSigned||0, r.chipLateralSigned||0), 0) / list.length; }
+    function signedMean(list, key){ if (!list.length) return 0; return list.reduce((s,r)=> s + (Number(r[key])||0), 0) / list.length; }
 
     document.getElementById('chipTotalShots').textContent = rows.length || '0';
     document.getElementById('chipAvgLeave').textContent = rows.length ? avgMag(rows).toFixed(1) : '–';
 
     chipRowsEl.innerHTML = '';
     ['10–25','30–45','50–65'].forEach(label=>{
-      const list = byB[label];
-      const n = list.length;
+      const list = byB[label], n = list.length;
       const md = signedMean(list,'chipDepthSigned');
       const ml = signedMean(list,'chipLateralSigned');
       const dirD = md<0 ? 'Short' : md>0 ? 'Long' : 'Exact';
@@ -1451,6 +1477,7 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
 
   function renderTrendsAll(){ renderChip(); renderPutt(); renderUD(); }
 
+  /* ===== Trends UI (incl. JSON/CSV import/export) ===== */
   function wireTrendsUI(){
     document.querySelectorAll('#view-trends .tseg button').forEach(b=>{
       b.onclick = ()=>{
@@ -1467,6 +1494,7 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
         c.classList.add('active'); chipLie = c.dataset.lie; renderChip();
       };
     });
+
     document.getElementById('exportAllCSV').onclick = ()=>{
       const rows = filteredHoles();
       const cols = [
@@ -1486,12 +1514,85 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
       });
       const csv = out.map(row => row.map(sanitizeCsvCell).join(",")).join("\n");
       const blob = new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8;"});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href = url; a.download = 'par2_trends.csv';
-      document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1500);
+      // keep the old anchor method here too
+      downloadViaAnchor('par2_trends.csv', blob);
     };
 
-    // open in editor (load for editing) — now auto-highlights hole 1 immediately
+    document.getElementById('exportJSONTrends').onclick = async ()=>{
+      try{
+        const sessions = await idbAll('sessions').catch(()=>[]);
+        const holes    = await idbAll('holes').catch(()=>[]);
+        const backup = {
+          v: 1,
+          exportedAt: new Date().toISOString(),
+          editor: { date: dateInput.value || todayLocalISO(), hole: parseInt(holeInput.value||'1',10), rows: saved },
+          sessions, holes
+        };
+
+        // Filename: "Par2 MM-DD-YYYY.json"
+        const fname = `Par2 ${formatMMDDYYYY(todayLocalISO())}.json`;
+        const blob = new Blob([JSON.stringify(backup,null,2)], {type:'application/json'});
+        downloadJSONSmart(fname, blob);
+      }catch(e){
+        console.error(e); alert('Could not create backup JSON.');
+      }
+    };
+
+    document.getElementById('importJSONInput').addEventListener('change', async (e)=>{
+      const file = e.target.files && e.target.files[0];
+      e.target.value = '';
+      if (!file) return;
+      try{
+        const text = await file.text();
+        const data = JSON.parse(text);
+        const sessions = Array.isArray(data.sessions) ? data.sessions : [];
+        const holes = Array.isArray(data.holes) ? data.holes : [];
+        const editorRows = data.editor && Array.isArray(data.editor.rows) ? data.editor.rows : [];
+
+        const replace = confirm('Import mode:\nOK = Replace existing data\nCancel = Merge into current data');
+        if (replace){
+          await idbDeleteWholeDB();
+          await openPar2DB();
+        }
+
+        const existing = replace ? [] : await idbAll('sessions');
+        const existingIds = new Set(existing.map(s=>s.id));
+        const idMap = new Map();
+        const rand = () => Math.random().toString(36).slice(2,7);
+
+        const db = await openPar2DB();
+        const tx = db.transaction(['sessions','holes'], 'readwrite');
+        const stS = tx.objectStore('sessions');
+        const stH = tx.objectStore('holes');
+
+        for (const s of sessions){
+          let id = s.id || `s_${Date.now()}_${rand()}`;
+          if (!replace && existingIds.has(id)){ const nid = `s_${Date.now()}_${rand()}`; idMap.set(id,nid); id = nid; }
+          else { idMap.set(id,id); }
+          stS.put({ ...s, id });
+        }
+        for (const h of holes){
+          const {uid, ...rest} = h;
+          const sid = idMap.get(h.sessionId) || h.sessionId;
+          stH.add({ ...rest, sessionId:sid });
+        }
+
+        tx.oncomplete = ()=> db.close();
+
+        if (editorRows.length){ saved = editorRows; renderLog(); }
+
+        [SESSIONS, HOLES] = await Promise.all([idbAll('sessions'), idbAll('holes')]);
+        currentSession = '';
+        populateSessionPicker();
+        renderTrendsAll();
+
+        alert(`Imported ${sessions.length} session(s) and ${holes.length} hole(s).`);
+      }catch(err){
+        console.error(err);
+        alert('Import failed. Make sure this is a valid Par2 backup JSON.');
+      }
+    });
+
     document.getElementById('openInEditor').onclick = async ()=>{
       const id = document.getElementById('sessionPick').value;
       if (!id){ showView('editor'); return; }
@@ -1505,7 +1606,6 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
         document.getElementById('hole').value = 1;
         updateSaveLabel();
         showView('editor');
-        // highlight Hole 1 right away:
         setTimeout(()=> { onHoleChange(); window.scrollTo({top:0,behavior:'smooth'}); }, 0);
         updateSessionHeader();
       }catch(e){
@@ -1517,7 +1617,7 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
     document.getElementById('deleteSessionBtn').onclick = async ()=>{
       const id = document.getElementById('sessionPick').value;
       if (!id) return;
-      if (!confirm('Delete this session and all its holes? This cannot be undone.')) return;
+      if (!confirm('Delete this session? This cannot be undone.')) return;
       try{
         await idbDeleteSession(id);
         if (workingSessionId === id){
@@ -1541,14 +1641,19 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
     };
   }
 
-  // initial editor boot
+  // ===== Initial boot =====
   document.querySelectorAll("#lieChips .pill").forEach(x=>x.classList.remove("active"));
   document.getElementById("chipSection").classList.add("hidden");
   document.getElementById("sectionP1").classList.add("hidden");
   document.getElementById("sectionP23").classList.add("hidden");
-  updateChipStepperUI(); updateP1StepperUI();
   renderFilterRow(); calcAll(); renderLog();
   updateSessionHeader();
+  showView('home'); // start at landing
+
+  // wire trends once when first opened
+  function wireTrendsUIOnce(){ if (!wireTrendsUI._wired){ wireTrendsUI(); wireTrendsUI._wired=true; } }
+  document.getElementById('goTrendsBtn').addEventListener('click', wireTrendsUIOnce, {once:true});
+  document.getElementById('homeTrendsBtn').addEventListener('click', wireTrendsUIOnce, {once:true});
 </script>
 </body>
 </html>
