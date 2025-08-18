@@ -511,6 +511,33 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
 </div>
 
 <script>
+  /* ===== Helpers (NEW: local date + CSV safety + HTML escape) ===== */
+  const pad2 = n => String(n).padStart(2,'0');
+  const todayLocalISO = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+  };
+  const formatLocalISO = (d) => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+  const parseISOAsLocal = (iso) => {
+    const [y,m,d] = (iso||'').split('-').map(x=>parseInt(x,10));
+    if(!y||!m||!d) return new Date();
+    return new Date(y, m-1, d); // local midnight
+  };
+
+  // Escape any string before inserting into innerHTML
+  const escapeHTML = (s) => String(s)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+
+  // Harden CSV cells against Excel/Sheets formula injection + quoting
+  const sanitizeCsvCell = (cell) => {
+    let s = String(cell ?? "");
+    s = s.replace(/\r/g,"").replace(/\n/g," ");    // normalize newlines
+    if (/^[=+\-@]/.test(s)) s = "'" + s;          // neutralize formulas
+    if (/[",]/.test(s)) s = '"' + s.replace(/"/g,'""') + '"'; // quote/escape
+    return s;
+  };
+
   /* ===== Shared: view switching ===== */
   const viewEditor  = document.getElementById('view-editor');
   const viewTrends  = document.getElementById('view-trends');
@@ -614,7 +641,9 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
   document.getElementById("holeMinus").onclick = () => { holeInput.value = Math.max(1, parseInt(holeInput.value||"1")-1); onHoleChange(); };
   document.getElementById("holePlus").onclick  = () => { holeInput.value = parseInt(holeInput.value||"1")+1; onHoleChange(); };
   holeInput.addEventListener('change', onHoleChange);
-  dateInput.value = new Date().toISOString().slice(0,10);
+
+  /* LOCAL date default (replaces previous UTC/ISO usage) */
+  dateInput.value = todayLocalISO();
   updateSaveLabel();
 
   // Turn "YYYY-MM-DD" into "MM-DD-YYYY"
@@ -628,7 +657,7 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
   // session header
   async function updateSessionHeader(){
     const labelEl = document.getElementById('sessionHeader');
-    const dateStr = dateInput.value || new Date().toISOString().slice(0,10);
+    const dateStr = dateInput.value || todayLocalISO();
     try{
       const sessions = await idbAll('sessions');
       const sameDay = sessions
@@ -933,12 +962,31 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
     saved.forEach((r,idx)=>{
       const tr = document.createElement("tr");
       tr.dataset.idx = idx;
-      tr.innerHTML = `
-        <td>${r.hole}</td><td>${formatMMDDYYYY(r.date)}</td><td>${r.lie}</td><td>${r.dist} yd</td>
-        <td>${r.p1 || ""}${r.p1? " ft": ""}</td>
-        <td>${r.p2 || ""}${r.p2? " ft": ""}</td>
-        <td>${r.p3 || ""}${r.p3? " ft": ""}</td>
-        <td class="score-cell">${r.score}<button class="rowbtn" data-del="${idx}" title="Delete">🗑</button></td>`;
+
+      // Build cells safely (avoid raw innerHTML with untrusted content)
+      const cells = [
+        String(r.hole),
+        formatMMDDYYYY(r.date),
+        r.lie,
+        `${r.dist} yd`,
+        r.p1 ? `${r.p1} ft` : "",
+        r.p2 ? `${r.p2} ft` : "",
+        r.p3 ? `${r.p3} ft` : ""
+      ].map(escapeHTML);
+
+      // First 7 cells
+      for (let i=0;i<7;i++){
+        const td=document.createElement('td');
+        td.innerHTML = cells[i]; // values are escaped
+        tr.appendChild(td);
+      }
+
+      // Score + delete button
+      const tdScore = document.createElement('td');
+      tdScore.className = 'score-cell';
+      tdScore.innerHTML = `${escapeHTML(String(r.score))}<button class="rowbtn" data-del="${idx}" title="Delete">🗑</button>`;
+      tr.appendChild(tdScore);
+
       tbody.appendChild(tr);
     });
     tbody.querySelectorAll('button[data-del]').forEach(btn=>{
@@ -965,15 +1013,19 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
     const a = document.createElement('a'); a.href = url; a.download = filename;
     const supportsDownload = typeof a.download !== 'undefined';
     const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    if (!supportsDownload || isiOS){ window.open(url, '_blank'); }
-    else { document.body.appendChild(a); a.click(); document.body.removeChild(a); }
+    if (!supportsDownload || isiOS){
+      // Safer new tab
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } else {
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    }
     setTimeout(()=>URL.revokeObjectURL(url), 1500);
   }
 
   document.getElementById("saveBtn").addEventListener("click", () => {
     if (!selectedDist || !selectedLie){ alert('Please select a Chip Starting Distance and a Lie before saving.'); return; }
     const hole = parseInt(holeInput.value||"1",10);
-    const date = dateInput.value || new Date().toISOString().slice(0,10);
+    const date = dateInput.value || todayLocalISO();
 
     const chip = leaveFromSigned(depthSigned, lineSigned);
     const p1   = leaveFromSigned(depthSignedP1, lineSignedP1);
@@ -1026,14 +1078,16 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
         r.p2 || "", r.p3 || "", r.score
       ]);
     });
-    const csv = rows.map(a=>a.join(",")).join("\n");
+
+    // Sanitize every cell before join
+    const csv = rows.map(row => row.map(sanitizeCsvCell).join(",")).join("\n");
     const blob = new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8;"});
     downloadBlob('par2_export.csv', blob);
   });
 
   document.getElementById("clearBtn").addEventListener("click", () => {
     if (!confirm('Clear EVERYTHING on this screen?')) return;
-    saved = []; holeInput.value = 1; dateInput.value = new Date().toISOString().slice(0,10);
+    saved = []; holeInput.value = 1; dateInput.value = todayLocalISO();
     workingSessionId = ''; // stop editing mode
     clearUISelections(); renderLog();
     document.getElementById('summaryBarTop').textContent = 'Par: 0 | Gross: 0 | Up/Down: 0% | To Par: 0';
@@ -1168,9 +1222,11 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
       const sessions = tx.objectStore('sessions');
       const holes = tx.objectStore('holes');
 
-      const dateVals = saved.map(r=> new Date(r.date || new Date().toISOString().slice(0,10)));
-      const minDate = new Date(Math.min(...dateVals.map(d=>d.getTime())));
-      const maxDate = new Date(Math.max(...dateVals.map(d=>d.getTime())));
+      // Build min/max using LOCAL dates derived from saved rows
+      const dateStrs = saved.map(r=> r.date || todayLocalISO());
+      const datesLocal = dateStrs.map(parseISOAsLocal);
+      const minDate = new Date(Math.min(...datesLocal.map(d=>d.getTime())));
+      const maxDate = new Date(Math.max(...datesLocal.map(d=>d.getTime())));
 
       let id = workingSessionId || `s_${Date.now()}`;
       if (isUpdate){
@@ -1185,16 +1241,16 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
         });
         await new Promise((res,rej)=>{
           const r = sessions.put({ id, createdAt:new Date().toISOString(),
-            dateStart:minDate.toISOString().slice(0,10),
-            dateEnd:maxDate.toISOString().slice(0,10),
+            dateStart:formatLocalISO(minDate),
+            dateEnd:formatLocalISO(maxDate),
             holes: saved.length });
           r.onsuccess=()=>res(); r.onerror=()=>rej(r.error);
         });
       } else {
         await new Promise((res,rej)=>{
           const r = sessions.add({ id, createdAt:new Date().toISOString(),
-            dateStart:minDate.toISOString().slice(0,10),
-            dateEnd:maxDate.toISOString().slice(0,10),
+            dateStart:formatLocalISO(minDate),
+            dateEnd:formatLocalISO(maxDate),
             holes: saved.length });
           r.onsuccess=()=>res(); r.onerror=()=>rej(r.error);
         });
@@ -1428,7 +1484,7 @@ header.editorbar .btn[data-color]:active{ transform:translateY(1px); }
           r.p2||"", r.p3||"", r.score
         ]);
       });
-      const csv = out.map(a=>a.join(",")).join("\n");
+      const csv = out.map(row => row.map(sanitizeCsvCell).join(",")).join("\n");
       const blob = new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8;"});
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a'); a.href = url; a.download = 'par2_trends.csv';
