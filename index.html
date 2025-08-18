@@ -88,6 +88,14 @@
 
   .stepper { display:grid; grid-template-columns:36px minmax(0,1fr) 36px; gap:8px; align-items:center; }
   .stepper .step { width:36px; height:36px; background:var(--btn); border:1px solid var(--border); border-radius:10px; font-size:16px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .stepper, .stepper * {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+  .stepper .step {
+  user-select: none;
+  -webkit-user-select: none;
+}
   .readout { display:flex; align-items:center; justify-content:center; gap:6px; font-weight:800; font-size:20px; }
   .readout input.readnum{ width:clamp(42px, 18vw, 70px); text-align:center; font-weight:800; font-size:20px; background:transparent; border:none; outline:none; color:var(--text); }
   .readout .unit { font-weight:600; font-size:14px; color:#fff; opacity:.9 }
@@ -288,7 +296,7 @@
           <div class="stepper">
             <button class="step" id="depthDown">▼</button>
             <div class="readout">
-              <input id="depthInput" class="readnum" type="text" inputmode="text" pattern="-?\\d{1,2}" maxlength="3" value="0" aria-label="Depth signed feet" />
+              <input id="depthInput" class="readnum" type="text" inputmode="text" pattern="-?\d{1,2}" maxlength="3" value="0" aria-label="Depth signed feet" />
               <span class="unit">ft</span>
             </div>
             <button class="step" id="depthUp">▲</button>
@@ -303,7 +311,7 @@
           <div class="stepper">
             <button class="step" id="lineLeft">◀</button>
             <div class="readout">
-              <input id="lineInput" class="readnum" type="text" inputmode="text" pattern="-?\\d{1,2}" maxlength="3" value="0" aria-label="Line signed feet" />
+              <input id="lineInput" class="readnum" type="text" inputmode="text" pattern="-?\d{1,2}" maxlength="3" value="0" aria-label="Line signed feet" />
               <span class="unit">ft</span>
             </div>
             <button class="step" id="lineRight">▶</button>
@@ -338,7 +346,7 @@
           <div class="stepper">
             <button class="step" id="depthDownP1">▼</button>
             <div class="readout">
-              <input id="depthInputP1" class="readnum" type="text" inputmode="text" pattern="-?\\d{1,2}" maxlength="3" value="0" aria-label="Putt 1 depth signed feet" />
+              <input id="depthInputP1" class="readnum" type="text" inputmode="text" pattern="-?\d{1,2}" maxlength="3" value="0" aria-label="Putt 1 depth signed feet" />
               <span class="unit">ft</span>
             </div>
             <button class="step" id="depthUpP1">▲</button>
@@ -353,7 +361,7 @@
           <div class="stepper">
             <button class="step" id="lineLeftP1">◀</button>
             <div class="readout">
-              <input id="lineInputP1" class="readnum" type="text" inputmode="text" pattern="-?\\d{1,2}" maxlength="3" value="0" aria-label="Putt 1 line signed feet" />
+              <input id="lineInputP1" class="readnum" type="text" inputmode="text" pattern="-?\d{1,2}" maxlength="3" value="0" aria-label="Putt 1 line signed feet" />
               <span class="unit">ft</span>
             </div>
             <button class="step" id="lineRightP1">▶</button>
@@ -836,7 +844,31 @@
   depthUpP1.onclick   = ()=>{ pendingDepthP1=false; const prev=depthSignedP1; depthSignedP1 = clamp(depthSignedP1 + 1, -99, 99); if(prev===99)  capDepthP1.classList.add('show'); updateP1StepperUI(); calcAll(); setTimeout(()=>capDepthP1.classList.remove('show'),1200); };
   lineLeftP1.onclick  = ()=>{ pendingLineP1=false;  const prev=lineSignedP1;  lineSignedP1  = clamp(lineSignedP1  - 1, -99, 99); if(prev===-99) capLineP1.classList.add('show');  updateP1StepperUI(); calcAll(); setTimeout(()=>capLineP1.classList.remove('show'),1200); };
   lineRightP1.onclick = ()=>{ pendingLineP1=false;  const prev=lineSignedP1;  lineSignedP1  = clamp(lineSignedP1  + 1, -99, 99); if(prev===99)  capLineP1.classList.add('show');  updateP1StepperUI(); calcAll(); setTimeout(()=>capLineP1.classList.remove('show'),1200); };
-
+// HOLD-TO-REPEAT for PUTT 1 (mirrors chip stepper behavior)
+addAutoRepeat(depthDownP1, ()=>{ 
+  pendingDepthP1=false; const prev=depthSignedP1;
+  depthSignedP1 = clamp(depthSignedP1 - 1, -99, 99);
+  if(prev===-99){ capDepthP1.classList.add('show'); setTimeout(()=>capDepthP1.classList.remove('show'),1200); }
+  updateP1StepperUI(); calcAll();
+});
+addAutoRepeat(depthUpP1, ()=>{ 
+  pendingDepthP1=false; const prev=depthSignedP1;
+  depthSignedP1 = clamp(depthSignedP1 + 1, -99, 99);
+  if(prev===99){ capDepthP1.classList.add('show'); setTimeout(()=>capDepthP1.classList.remove('show'),1200); }
+  updateP1StepperUI(); calcAll();
+});
+addAutoRepeat(lineLeftP1, ()=>{ 
+  pendingLineP1=false; const prev=lineSignedP1;
+  lineSignedP1 = clamp(lineSignedP1 - 1, -99, 99);
+  if(prev===-99){ capLineP1.classList.add('show'); setTimeout(()=>capLineP1.classList.remove('show'),1200); }
+  updateP1StepperUI(); calcAll();
+});
+addAutoRepeat(lineRightP1, ()=>{ 
+  pendingLineP1=false; const prev=lineSignedP1;
+  lineSignedP1 = clamp(lineSignedP1 + 1, -99, 99);
+  if(prev===99){ capLineP1.classList.add('show'); setTimeout(()=>capLineP1.classList.remove('show'),1200); }
+  updateP1StepperUI(); calcAll();
+});
   ["putt1Dist","putt2","putt3"].forEach(id=>{
     const el = document.getElementById(id);
     el.addEventListener("change", () => { el.value = el.value === "" ? "" : r0(el.value); calcAll(); });
