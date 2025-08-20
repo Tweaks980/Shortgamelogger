@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Par2 – Home + Editor + Stats/Trends</title>
+<title>Par2 – Home + Session + Stats/Trends</title>
 
 <!-- ======== EDITOR (DARK) THEME ======== -->
 <style>
@@ -12,21 +12,27 @@
     --muted:#9aa7b2; --accent:#2ea043; --accent-2:#3b82f6; --btn:#2b3138; --btn-active:#355043;
     --border:#2a3138; --radius:14px;
     --blue:#3b82f6; --green:#22c55e; --red:#ef4444; --purple:#a855f7;
+    color-scheme: dark;
   }
 
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--text);
     font-family:-apple-system,BlinkMacSystemFont,Inter,Arial,sans-serif}
   .wrap{max-width:420px;margin:0 auto;padding:12px}
+  /* NEW: compact wrap to tighten vertical spacing on session page */
+  .wrap.compact{padding-top:6px;padding-bottom:6px}
 
   header.editorbar{display:flex;gap:6px;padding:6px;border-bottom:1px solid var(--border);
     position:sticky;top:0;background:rgba(15,17,21,.95);backdrop-filter:blur(8px);z-index:4}
   .btn{background:var(--btn);color:var(--text);border:1px solid var(--border);
-    padding:8px 12px;border-radius:10px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
+    padding:8px 12px;border-radius:10px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px;justify-content:center}
   .btn:focus{outline:2px solid #5a9; outline-offset:2px}
+  .btn.small{padding:6px 10px;font-size:12px}
   .save{background:var(--accent);border:none;color:#08130a;font-weight:700}
   .btn.full{width:100%; justify-content:center}
   .btn.chartToggle{background:var(--accent-2); color:#fff; border:none; font-weight:800;
+    padding:14px 18px; border-radius:14px; font-size:16px}
+  .btn.primaryBlue{background:var(--accent-2); color:#fff; border:none; font-weight:800;
     padding:14px 18px; border-radius:14px; font-size:16px}
   .hidden{display:none}
 
@@ -38,7 +44,7 @@
   header.editorbar .btn[data-color]:hover{filter:brightness(1.06)}
   header.editorbar .btn[data-color]:active{transform:translateY(1px)}
 
-  h1.sessionTitle{margin:4px 0 0;text-align:center;font-size:20px;font-weight:800}
+  h1.sessionTitle{margin:2px 0 0;text-align:center;font-size:20px;font-weight:800} /* tightened */
   h2{margin:0 0 8px 0;font-size:14px;color:var(--muted);font-weight:600}
   .h2-center-white{color:var(--text); text-align:center;}
 
@@ -51,8 +57,8 @@
     margin-top:6px; display:none; z-index:5}
   .helpwrap.open .tip{ display:block; }
 
-  .panel{background:var(--panel);padding:12px;margin:5px 0;border-radius:var(--radius);
-    border:1px solid var(--border)}
+  .panel{background:var(--panel);padding:12px;margin:4px 0;border-radius:var(--radius);
+    border:1px solid var(--border)} /* margin tightened from 5px -> 4px */
   .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .row.divider-2cols{grid-template-columns:minmax(0,1fr) 1px minmax(0,1fr);align-items:start}
   .vdiv{width:1px;background:var(--border);height:100%;border-radius:1px}
@@ -88,14 +94,8 @@
 
   .stepper { display:grid; grid-template-columns:36px minmax(0,1fr) 36px; gap:8px; align-items:center; }
   .stepper .step { width:36px; height:36px; background:var(--btn); border:1px solid var(--border); border-radius:10px; font-size:16px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
-  .stepper, .stepper * {
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-}
-  .stepper .step {
-  user-select: none;
-  -webkit-user-select: none;
-}
+  .stepper, .stepper * { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+  .stepper .step { user-select: none; -webkit-user-select: none; }
   .readout { display:flex; align-items:center; justify-content:center; gap:6px; font-weight:800; font-size:20px; }
   .readout input.readnum{ width:clamp(42px, 18vw, 70px); text-align:center; font-weight:800; font-size:20px; background:transparent; border:none; outline:none; color:var(--text); }
   .readout .unit { font-weight:600; font-size:14px; color:#fff; opacity:.9 }
@@ -153,29 +153,89 @@
   }
 </style>
 
-<!-- ======== HOME + TRENDS (LIGHT) THEME – scoped ======== -->
+<!-- ======== HOME (DARK) – scoped to #view-home ======== -->
 <style>
-  /* HOME / landing */
-  #view-home{background:#fafaf7;color:#0b1220;min-height:100vh}
-  #view-home .homewrap{max-width:520px;margin:0 auto;padding:24px 16px}
-  #view-home .title{display:flex;align-items:center;gap:10px;font-weight:900;font-size:36px;letter-spacing:-.02em;margin:10px 0 4px}
-  #view-home .subtitle{font-weight:700;color:#1f2937;margin:0 0 18px}
-  #view-home .card{background:#fff;border:1px solid #e6ebf1;border-radius:18px;padding:18px}
-  #view-home ul{margin:10px 0 0 0;padding-left:20px}
-  #view-home li{margin:8px 0;font-weight:700;color:#0b1220}
-  #homeTrendsBtn{ display:none !important; }
-  #view-home .actions{
-    display:flex;
-    gap:10px;
-    margin-top:16px;
-    flex-wrap:wrap;
-    justify-content:center; /* centers the Start Session button */
+  #view-home{background:var(--bg);color:var(--text);min-height:100vh}
+  #view-home .wrap{max-width:1100px;margin:0 auto;padding:16px}
+  #view-home header{
+    display:flex;align-items:center;justify-content:center;text-align:center;
+    padding:8px 0 16px;border-bottom:1px solid var(--border)
   }
-  #view-home .btnL{appearance:none;border:1px solid #e6ebf1;background:#2563eb;color:#fff;
-    padding:12px 16px;border-radius:12px;font-weight:800;cursor:pointer}
-  #view-home .btnL.ghost{background:#fff;color:#0b1220}
+  #view-home .app-title{font-size:22px;margin:0;text-align:center}
 
-  /* TRENDS light theme */
+  #view-home .card{
+    background:var(--panel);border:1px solid var(--border);
+    border-radius:var(--radius);padding:14px
+  }
+  #view-home .rules ul{margin:0 0 16px 18px;padding:0}
+  #view-home .rules li{margin:8px 0;font-size:14px}
+  #view-home .btn-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+  #view-home .btn{
+    background:var(--btn);border:1px solid var(--border);border-radius:14px;
+    padding:10px 18px;color:var(--text);text-decoration:none;font-weight:600;font-size:18px;
+    display:inline-flex;align-items:center;justify-content:center;cursor:pointer
+  }
+  #view-home .btn:hover{background:var(--btn-active)}
+  #view-home .btn.primary{
+    background:linear-gradient(135deg,var(--accent-2),var(--accent));border-color:transparent
+  }
+  #view-home .btn.primary:hover{filter:brightness(1.05)}
+  #view-home .btn:focus-visible{ outline:2px solid var(--accent-2); outline-offset:2px; }
+  #view-home a:focus-visible{ border-radius:12px; }
+
+  #view-home .section{margin-top:22px}
+  #view-home .table-card .sub{
+    margin:0 0 10px 0;color:var(--text);text-align:center;font-size:13px;font-style:italic
+  }
+  #view-home .table-wrap{
+    border:1px solid var(--border);border-radius:16px;background:var(--panel-2);
+    overflow:auto;max-height:320px
+  }
+  #view-home table.pretty{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed}
+  #view-home .col-group{width:45%}
+  #view-home .col-y{width:16%}
+  #view-home .pretty thead th{
+    position:sticky;top:0;background:var(--panel-2);z-index:1;
+    text-align:left;font-weight:600;padding:15px 12px;border-bottom:1px solid var(--border);
+    color:var(--muted);font-size:14px
+  }
+  #view-home .pretty tbody td{
+    padding:10px 8px;border-bottom:1px solid var(--border);
+    vertical-align:middle;background:var(--panel-2)
+  }
+  #view-home .pretty tbody th[scope="row"]{
+    padding:10px 8px;border-bottom:1px solid var(--border);
+    vertical-align:middle;background:var(--panel-2);text-align:left;font-weight:600
+  }
+  #view-home .pretty tbody tr:hover td,
+  #view-home .pretty tbody tr:hover th[scope="row"]{background:rgba(255,255,255,0.03)}
+  #view-home .pretty tbody tr:last-child td,
+  #view-home .pretty tbody tr:last-child th[scope="row"]{border-bottom:0}
+  #view-home .pretty th:first-child,#view-home .pretty td:first-child{white-space:normal}
+  #view-home .pretty th:nth-child(n+2),#view-home .pretty td:nth-child(n+2){text-align:right;white-space:nowrap}
+  #view-home .pretty thead th.yard{padding-top:6px;text-align:right}
+  #view-home .hdr-top{display:block;line-height:1;font-size:13px}
+  #view-home .hdr-sub{display:block;line-height:1;margin-top:2px;font-size:10px;color:var(--muted);margin-right:2px}
+
+  #view-home .sources{margin:12px 0 8px;text-align:center}
+  #view-home .sources-title{font-weight:600;color:var(--text);margin-bottom:4px;font-size:12px;font-style:italic}
+  #view-home .sources-list{
+    list-style:none;margin:0;padding:0;display:inline-flex;flex-direction:column;gap:2px;
+    color:var(--muted);font-size:11px;font-style:italic
+  }
+  #view-home .sources-list li::before{content:"- ";margin-right:2px;color:var(--muted)}
+  #view-home footer{
+    margin-top:12px;padding-top:16px;border-top:1px solid var(--border);
+    color:var(--muted);font-size:12px;text-align:center
+  }
+  #view-home .sr-only{
+    position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+    clip:rect(0 0 0 0);white-space:nowrap;border:0;
+  }
+</style>
+
+<!-- ======== TRENDS (LIGHT) THEME (incl. KPI arrows) ======== -->
+<style>
   #view-trends{background:#f7f9fc;color:#0b1220;min-height:100vh}
   #view-trends .twrap{max-width:420px; margin:0 auto; padding:14px}
   #view-trends .hdr{display:flex; align-items:center; gap:12px; padding:12px 14px}
@@ -195,7 +255,8 @@
 
   #view-trends .kpis{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:14px 0}
   #view-trends .kpi{background:#fff; border:1px solid #e6ebf1; border-radius:16px; padding:14px}
-  #view-trends .kpi .big{font-size:40px; font-weight:800; line-height:1; letter-spacing:-.02em}
+  #view-trends .kpi .big{font-size:40px; font-weight:800; line-height:1; letter-spacing:-.02em; display:flex; align-items:center; justify-content:center; gap:6px}
+  #view-trends .kpi .big .dir{font-size:18px; color:#6b7280; letter-spacing:2px}
   #view-trends .kpi .label{color:#6b7280; margin-top:6px; font-weight:600}
   #view-trends .chips{display:flex; gap:6px; flex-wrap:nowrap; overflow-x:auto; margin-bottom:12px}
   #view-trends .chip{padding:4px 8px; border:1px solid #e6ebf1; border-radius:999px; background:#f4f7fb; color:#334155; font-weight:700; cursor:pointer; font-size:12px; white-space:nowrap}
@@ -208,30 +269,155 @@
   #view-trends .right{text-align:right}
   #view-trends .notice{font-size:12px; color:#6b7280; margin-top:8px}
 </style>
+
+<!-- ===== Bottom App Nav (white w/ grey inactive, black active) ===== -->
+<style>
+  :root { --nav-h: 64px; }
+
+  .appnav{
+    position:fixed; left:0; right:0; bottom:0; z-index:50;
+    background:#ffffff; border-top:1px solid #e6ebf1;
+    backdrop-filter:blur(8px);
+    height:var(--nav-h);
+    padding-bottom:max(0px, env(safe-area-inset-bottom));
+  }
+  .appnav .row{
+    max-width:680px; margin:0 auto; padding:8px 12px;
+    display:grid; grid-template-columns:repeat(5,1fr); gap:6px;
+  }
+  .appnav button{
+    appearance:none; border:none; background:transparent; cursor:pointer;
+    color:#6b7280; /* inactive grey */
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    border-radius:12px; padding:6px 8px; font-weight:800;
+  }
+  .appnav button .ico{ width:22px; height:22px; display:block }
+  .appnav button .lbl{ font-size:11px }
+  .appnav button.active{ color:#111827; background:rgba(0,0,0,.04) } /* active black */
+
+  /* Keep content clear of the bar */
+  body{ padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 8px); }
+
+  /* Hide the old top editor header; keep its buttons for logic */
+  header.editorbar{ display:none !important; }
+
+  /* “More” drop-up */
+  .sheet{ position:fixed; left:0; right:0;
+    bottom:calc(var(--nav-h) + env(safe-area-inset-bottom));
+    z-index:49; display:flex; justify-content:center; }
+  .sheet.hidden{ display:none }
+  .sheet .card{
+    width:min(420px, 94vw); background:var(--panel); border:1px solid var(--border);
+    border-radius:16px; padding:10px; box-shadow:0 10px 30px rgba(0,0,0,.35);
+  }
+  .sheet .row{ display:grid; grid-template-columns:1fr; gap:8px }
+  .sheet .row button{
+    background:var(--btn); color:var(--text); border:1px solid var(--border);
+    border-radius:12px; padding:10px 12px; font-weight:700; cursor:pointer;
+  }
+
+  @media (max-width:380px){
+    :root{ --nav-h: 58px; }
+    .appnav button .ico{ width:20px; height:20px }
+  }
+
+  /* Session page tightening */
+  #view-editor > .wrap + .wrap{ padding-top:6px } /* title → summary */
+  #topOfApp.wrap{ padding-top:6px } /* summary → Hole/Date */
+</style>
 </head>
 
 <body>
 <!-- ========================= HOME / LANDING ========================= -->
 <div id="view-home">
-  <div class="homewrap">
-    <div class="title">⛳ Par2<span style="font-weight:700">—</span></div>
-    <div class="subtitle">The Short Game Challenge</div>
-    <div class="card">
-      <ul>
-        <li>Every hole is a par 2</li>
-        <li>Start with a chip from a set distance and lie</li>
-        <li>Track where you leave it, then putt out</li>
-        <li>The app logs your score, distance control, and dispersion</li>
-      </ul>
-      <div class="actions">
-        <button class="btnL" id="startSessionBtn">Start Session</button>
-        <button class="btnL.ghost btnL" id="homeTrendsBtn">View Stats/Trends</button>
-      </div>
-    </div>
+  <div class="wrap">
+    <header>
+      <h1 class="app-title">⛳️ Par2 — Short Game Tracker</h1>
+    </header>
+
+    <main>
+      <!-- Rules + Start Session -->
+      <section class="section">
+        <div class="card rules">
+          <ul>
+            <li>Every hole is a par 2</li>
+            <li>Start with a chip from a set distance and lie</li>
+            <li>Track where you leave it, then putt out</li>
+            <li>The app logs your score, distance control, and dispersion</li>
+          </ul>
+          <div class="btn-row">
+            <button class="btn primary" id="startSessionBtn">Start Session</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Table -->
+      <section class="section">
+        <div class="card table-card">
+          <p class="sub">Average Leave Distance By Handicap</p>
+
+          <div class="table-wrap">
+            <table class="pretty" aria-label="Average Leave Distance By Handicap">
+              <caption class="sr-only">
+                Average leave distance by handicap for 10–25, 30–45, and 50–65 yards.
+              </caption>
+
+              <colgroup>
+                <col class="col-group">
+                <col class="col-y">
+                <col class="col-y">
+                <col class="col-y">
+              </colgroup>
+
+              <thead>
+                <tr>
+                  <th>Handicap</th>
+                  <th class="yard">
+                    <span class="hdr-top">10–25</span>
+                    <span class="hdr-sub">yds</span>
+                  </th>
+                  <th class="yard">
+                    <span class="hdr-top">30–45</span>
+                    <span class="hdr-sub">yds</span>
+                  </th>
+                  <th class="yard">
+                    <span class="hdr-top">50–65</span>
+                    <span class="hdr-sub">yds</span>
+                  </th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr><th scope="row">PGA (From Fairway)</th><td>5.8′</td><td>8.8′</td><td>11.5′</td></tr>
+                <tr><th scope="row">PGA</th><td>8′</td><td>13′</td><td>16′</td></tr>
+                <tr><th scope="row">0–5 HCP</th><td>14′</td><td>25′</td><td>38′</td></tr>
+                <tr><th scope="row">15 HCP</th><td>20′</td><td>33′</td><td>48′</td></tr>
+                <tr><th scope="row">20+ HCP</th><td>28′</td><td>40′</td><td>58′</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="sources">
+            <div class="sources-title">Sources:</div>
+            <ul class="sources-list">
+              <li>PGA TOUR</li>
+              <li>World of Stats</li>
+              <li>Arccos</li>
+              <li>Shot Scope</li>
+              <li>Shot Link</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div>© <span id="yr"></span> Par2. All rights reserved.</div>
+    </footer>
   </div>
 </div>
 
-<!-- ========================= EDITOR ========================= -->
+<!-- ========================= EDITOR (SESSION) ========================= -->
 <div id="view-editor" class="hidden">
 <header class="wrap editorbar">
   <button class="btn" data-color="green"  id="saveSessionBtn" title="Save current session to Stats/Trends">Finish Session</button>
@@ -240,14 +426,17 @@
   <button class="btn" data-color="blue"   id="goTrendsBtn" title="Open Stats/Trends">Stats/Trends</button>
 </header>
 
-  <section class="wrap"><h1 id="sessionHeader" class="sessionTitle">Session: —</h1></section>
+  <!-- Session title (auto) -->
+  <section class="wrap compact">
+    <h1 id="sessionHeader" class="sessionTitle">Session: —</h1>
+  </section>
 
-  <!-- fixed: use an inner .panel so background aligns with the rest -->
-  <section class="wrap">
+  <!-- summary -->
+  <section class="wrap compact">
     <div class="panel"><div id="summaryBarTop">Par: 0 | Gross: 0 | Up/Down: 0% | To Par: 0</div></div>
   </section>
 
-  <main class="wrap" id="topOfApp">
+  <main class="wrap compact" id="topOfApp">
     <section class="panel">
       <div class="row">
         <div class="field">
@@ -398,6 +587,11 @@
       <button class="btn undo" id="undoBtn">Reset Hole</button>
     </section>
 
+    <!-- NEW: Finish Session button (moved here) -->
+    <section class="wrap compact">
+      <button class="btn full primaryBlue" id="finishSessionBtn">Finish Session</button>
+    </section>
+
     <!-- Log -->
     <section class="panel">
       <table class="tight">
@@ -441,9 +635,7 @@
     <h2>Stats/Trends</h2>
     <div class="tools">
       <button class="tbtn" id="exportAllCSV">CSV</button>
-      <button class="tbtn" id="exportJSONTrends" title="Backup JSON">JSON</button>
-      <label class="tbtn" for="importJSONInput" title="Import JSON">Import</label>
-      <input type="file" id="importJSONInput" accept="application/json" hidden />
+      <!-- Removed Export JSON + Import controls from here -->
     </div>
   </div>
 
@@ -465,7 +657,10 @@
     <section id="tab-chip">
       <div class="kpis">
         <div class="kpi">
-          <div class="big" id="chipAvgLeave">–</div>
+          <div class="big">
+            <span id="chipAvgLeave">–</span>
+            <span id="chipDir" class="dir" title="Miss bias (vertical/long-short + horizontal/left-right)"></span>
+          </div>
           <div class="label">Avg leave (ft)</div>
         </div>
         <div class="kpi">
@@ -500,7 +695,10 @@
     <section id="tab-putt" class="hidden">
       <div class="kpis">
         <div class="kpi">
-          <div class="big" id="puttHeadline">–</div>
+          <div class="big">
+            <span id="puttHeadline">–</span>
+            <span id="puttDir" class="dir" title="Miss bias (vertical/long-short + horizontal/left-right)"></span>
+          </div>
           <div class="label">avg 1st putt leave</div>
         </div>
         <div class="kpi">
@@ -526,6 +724,15 @@
 
     <!-- UP & DOWN -->
     <section id="tab-ud" class="hidden">
+      <!-- Replaced UD tabs with chips (like Chipping) -->
+      <div class="chips" id="udLieChips" aria-label="Up & Down Lie Filter" style="margin-top:12px;">
+        <span class="chip active" data-lie="All">All</span>
+        <span class="chip" data-lie="Fairway">Fairway</span>
+        <span class="chip" data-lie="Rough">Rough</span>
+        <span class="chip" data-lie="Sand">Sand</span>
+        <span class="chip" data-lie="Recovery">Recovery</span>
+      </div>
+
       <div class="kpis">
         <div class="kpi"><div class="big" id="udShots">–</div><div class="label"># of Shots</div></div>
         <div class="kpi"><div class="big" id="udWins">–</div><div class="label">Total Up &amp; Downs</div></div>
@@ -547,6 +754,58 @@
   </div>
 </div>
 
+<!-- ===== Bottom App Navigation ===== -->
+<nav class="appnav" id="appnav" aria-label="App navigation">
+  <div class="row">
+    <button data-nav="home" aria-label="Home">
+      <svg class="ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M12 3l9 8h-3v9h-5v-6h-2v6H6v-9H3z"/>
+      </svg>
+      <span class="lbl">Home</span>
+    </button>
+    <button data-nav="editor" aria-label="Session">
+      <svg class="ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm14.71-9.04a1 1 0 000-1.41l-2.51-2.51a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 2-1.66z"/>
+      </svg>
+      <span class="lbl">Session</span>
+    </button>
+    <button data-nav="new" aria-label="New Session">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <span class="lbl">New</span>
+    </button>
+    <button data-nav="stats" aria-label="Stats/Trends">
+      <svg class="ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M5 9h3v10H5zM10.5 5H14v14h-3.5zM16 12h3v7h-3z"/>
+      </svg>
+      <span class="lbl">Stats</span>
+    </button>
+    <button data-nav="more" aria-label="More">
+      <svg class="ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M6 12a2 2 0 114 0 2 2 0 01-4 0zm4 0a2 2 0 114 0 2 2 0 01-4 0zm4 0a2 2 0 114 0 2 2 0 01-4 0z"/>
+      </svg>
+      <span class="lbl">More</span>
+    </button>
+  </div>
+</nav>
+
+<!-- “More” drop-up -->
+<div id="moreSheet" class="sheet hidden" aria-hidden="true">
+  <div class="card">
+    <div class="row">
+      <button id="msExportEditor">Export CSV (Editor)</button>
+      <button id="msExportAll">Export CSV (Stats)</button>
+      <button id="msExportJSON">Export JSON</button>
+      <button id="msImportJSON">Import JSON</button>
+      <button id="msClose">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden input for Import JSON (moved from Trends header) -->
+<input type="file" id="importJSONInput" accept="application/json" hidden />
+
 <script>
   /* ===== Helpers ===== */
   const pad2 = n => String(n).padStart(2,'0');
@@ -555,16 +814,13 @@
   const parseISOAsLocal = (iso) => { const [y,m,d] = (iso||'').split('-').map(x=>parseInt(x,10)); if(!y||!m||!d) return new Date(); return new Date(y, m-1, d); };
   const escapeHTML = (s) => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
   const sanitizeCsvCell = (cell) => {
-  let s = String(cell ?? "").replace(/\r/g, "").replace(/\n/g, " ");
-  const t = s.trim();
-  const isPureNumber = /^-?\d+(?:\.\d+)?$/.test(t); // integers/decimals, optional leading -
-
-  // Only harden if it starts like a formula AND it's not just a number
-  if (!isPureNumber && /^[=+\-@]/.test(t)) s = "'" + s;
-
-  if (/[",]/.test(s)) s = '"' + s.replace(/"/g, '""') + '"';
-  return s;
-};
+    let s = String(cell ?? "").replace(/\r/g, "").replace(/\n/g, " ");
+    const t = s.trim();
+    const isPureNumber = /^-?\d+(?:\.\d+)?$/.test(t);
+    if (!isPureNumber && /^[=+\-@]/.test(t)) s = "'" + s;
+    if (/[",]/.test(s)) s = '"' + s.replace(/"/g, '""') + '"';
+    return s;
+  };
 
   /* ===== View switching ===== */
   const viewHome   = document.getElementById('view-home');
@@ -576,7 +832,6 @@
     viewTrends.classList.toggle('hidden', which!=='trends');
   }
   document.getElementById('startSessionBtn').onclick = ()=> showView('editor');
-  document.getElementById('homeTrendsBtn').onclick   = ()=>{ initTrends().then(()=>showView('trends')); };
   document.getElementById('goTrendsBtn').onclick     = ()=>{ initTrends().then(()=>showView('trends')); };
   document.getElementById('backToEditor').onclick    = ()=> showView('editor');
 
@@ -694,10 +949,11 @@
     return `${m.padStart(2,"0")}-${d.padStart(2,"0")}-${y}`;
   }
 
-  // session header
+  // session header (auto naming only)
   async function updateSessionHeader(){
     const labelEl = document.getElementById('sessionHeader');
     const dateStr = dateInput.value || todayLocalISO();
+    let defaultLabel = '';
     try{
       const sessions = await idbAll('sessions');
       const sameDay = sessions
@@ -708,10 +964,11 @@
         const idx = sameDay.findIndex(s=> s.id === workingSessionId);
         if (idx >= 0) n = idx + 1;
       }
-      labelEl.textContent = `Session: ${formatMMDDYYYY(dateStr)} (${n})`;
+      defaultLabel = `Session: ${formatMMDDYYYY(dateStr)} (${n})`;
     }catch{
-      labelEl.textContent = `Session: ${formatMMDDYYYY(dateStr)} (1)`;
+      defaultLabel = `Session: ${formatMMDDYYYY(dateStr)} (1)`;
     }
+    labelEl.textContent = defaultLabel;
   }
   dateInput.addEventListener('change', updateSessionHeader);
 
@@ -740,7 +997,7 @@
   const lieButtons = document.querySelectorAll("#lieChips .pill");
   function updateChipVisibility(scrollOnShow=false){
     const sec = document.getElementById("chipSection");
-    const shouldShow = !!selectedLie; // chip stepper only appears when a lie is chosen
+    const shouldShow = !!selectedLie;
     sec.classList.toggle("hidden", !shouldShow);
     if (shouldShow && scrollOnShow) smoothFocus(sec);
   }
@@ -844,38 +1101,50 @@
   depthUpP1.onclick   = ()=>{ pendingDepthP1=false; const prev=depthSignedP1; depthSignedP1 = clamp(depthSignedP1 + 1, -99, 99); if(prev===99)  capDepthP1.classList.add('show'); updateP1StepperUI(); calcAll(); setTimeout(()=>capDepthP1.classList.remove('show'),1200); };
   lineLeftP1.onclick  = ()=>{ pendingLineP1=false;  const prev=lineSignedP1;  lineSignedP1  = clamp(lineSignedP1  - 1, -99, 99); if(prev===-99) capLineP1.classList.add('show');  updateP1StepperUI(); calcAll(); setTimeout(()=>capLineP1.classList.remove('show'),1200); };
   lineRightP1.onclick = ()=>{ pendingLineP1=false;  const prev=lineSignedP1;  lineSignedP1  = clamp(lineSignedP1  + 1, -99, 99); if(prev===99)  capLineP1.classList.add('show');  updateP1StepperUI(); calcAll(); setTimeout(()=>capLineP1.classList.remove('show'),1200); };
-// HOLD-TO-REPEAT for PUTT 1 (mirrors chip stepper behavior)
-addAutoRepeat(depthDownP1, ()=>{ 
-  pendingDepthP1=false; const prev=depthSignedP1;
-  depthSignedP1 = clamp(depthSignedP1 - 1, -99, 99);
-  if(prev===-99){ capDepthP1.classList.add('show'); setTimeout(()=>capDepthP1.classList.remove('show'),1200); }
-  updateP1StepperUI(); calcAll();
-});
-addAutoRepeat(depthUpP1, ()=>{ 
-  pendingDepthP1=false; const prev=depthSignedP1;
-  depthSignedP1 = clamp(depthSignedP1 + 1, -99, 99);
-  if(prev===99){ capDepthP1.classList.add('show'); setTimeout(()=>capDepthP1.classList.remove('show'),1200); }
-  updateP1StepperUI(); calcAll();
-});
-addAutoRepeat(lineLeftP1, ()=>{ 
-  pendingLineP1=false; const prev=lineSignedP1;
-  lineSignedP1 = clamp(lineSignedP1 - 1, -99, 99);
-  if(prev===-99){ capLineP1.classList.add('show'); setTimeout(()=>capLineP1.classList.remove('show'),1200); }
-  updateP1StepperUI(); calcAll();
-});
-addAutoRepeat(lineRightP1, ()=>{ 
-  pendingLineP1=false; const prev=lineSignedP1;
-  lineSignedP1 = clamp(lineSignedP1 + 1, -99, 99);
-  if(prev===99){ capLineP1.classList.add('show'); setTimeout(()=>capLineP1.classList.remove('show'),1200); }
-  updateP1StepperUI(); calcAll();
-});
+
+  // hold-to-repeat for Putt 1 steppers
+  function addAutoRepeat(btn, stepFn){
+    let holdT=null, repI=null, active=false;
+    const start=(e)=>{ e.preventDefault(); if(active) return; active=true; stepFn();
+      holdT=setTimeout(()=>{ repI=setInterval(()=>{ stepFn(); }, 80); }, 400);
+    };
+    const stop=()=>{ active=false; clearTimeout(holdT); clearInterval(repI); holdT=null; repI=null; };
+    btn.addEventListener('mousedown', start);
+    btn.addEventListener('touchstart', start, {passive:false});
+    ['mouseup','mouseleave','touchend','touchcancel'].forEach(ev=> btn.addEventListener(ev, stop));
+  }
+  addAutoRepeat(depthDownP1, ()=>{ 
+    pendingDepthP1=false; const prev=depthSignedP1;
+    depthSignedP1 = clamp(depthSignedP1 - 1, -99, 99);
+    if(prev===-99){ capDepthP1.classList.add('show'); setTimeout(()=>capDepthP1.classList.remove('show'),1200); }
+    updateP1StepperUI(); calcAll();
+  });
+  addAutoRepeat(depthUpP1, ()=>{ 
+    pendingDepthP1=false; const prev=depthSignedP1;
+    depthSignedP1 = clamp(depthSignedP1 + 1, -99, 99);
+    if(prev===99){ capDepthP1.classList.add('show'); setTimeout(()=>capDepthP1.classList.remove('show'),1200); }
+    updateP1StepperUI(); calcAll();
+  });
+  addAutoRepeat(lineLeftP1, ()=>{ 
+    pendingLineP1=false; const prev=lineSignedP1;
+    lineSignedP1 = clamp(lineSignedP1 - 1, -99, 99);
+    if(prev===-99){ capLineP1.classList.add('show'); setTimeout(()=>capLineP1.classList.remove('show'),1200); }
+    updateP1StepperUI(); calcAll();
+  });
+  addAutoRepeat(lineRightP1, ()=>{ 
+    pendingLineP1=false; const prev=lineSignedP1;
+    lineSignedP1 = clamp(lineSignedP1 + 1, -99, 99);
+    if(prev===99){ capLineP1.classList.add('show'); setTimeout(()=>capLineP1.classList.remove('show'),1200); }
+    updateP1StepperUI(); calcAll();
+  });
+
   ["putt1Dist","putt2","putt3"].forEach(id=>{
     const el = document.getElementById(id);
     el.addEventListener("change", () => { el.value = el.value === "" ? "" : r0(el.value); calcAll(); });
     el.addEventListener("input", calcAll);
   });
 
-  // helper toasts (open/close)
+  // helper toasts
   const chipHelpWrap = document.getElementById('chipHelpWrap');
   const chipHelpBtn  = document.getElementById('chipHelpBtn');
   const puttHelpWrap = document.getElementById('puttHelpWrap');
@@ -925,7 +1194,6 @@ addAutoRepeat(lineRightP1, ()=>{
 
     updateDerivedBubbles(chip, p1);
 
-    // NEW: visibility now also depends on selections (distance & lie)
     const hasSelections = !!(selectedDist && selectedLie);
     const chipHasInput = hasSelections && ((Math.abs(depthSigned) || Math.abs(lineSigned)) > 0);
     const p1HasInput   = chipHasInput && ((Math.abs(depthSignedP1) || Math.abs(lineSignedP1)) > 0);
@@ -1042,8 +1310,6 @@ addAutoRepeat(lineRightP1, ()=>{
   }
 
   /* ========== Download helpers ========== */
-
-  // 1) Anchor/ObjectURL download: keep CSV behavior exactly like the old flow.
   function downloadViaAnchor(filename, blob){
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -1055,24 +1321,17 @@ addAutoRepeat(lineRightP1, ()=>{
     a.remove();
     setTimeout(()=>URL.revokeObjectURL(url), 1500);
   }
-
-  // 2) JSON: prefer iOS Web Share with files, else fall back to anchor, then data URL.
   function downloadJSONSmart(filename, blob){
     const file = new File([blob], filename, { type: blob.type || 'application/json' });
-
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       navigator.share({ files: [file], title: filename })
         .catch(()=> downloadViaAnchor(filename, blob));
       return;
     }
-
-    // Anchor path
     try {
       downloadViaAnchor(filename, blob);
       return;
     } catch {}
-
-    // Very old fallback
     const reader = new FileReader();
     reader.onload = () => {
       const dataUrl = reader.result;
@@ -1082,7 +1341,7 @@ addAutoRepeat(lineRightP1, ()=>{
     reader.readAsDataURL(file);
   }
 
-  /* ===== Export CSV (editor) — old Safari-friendly flow ===== */
+  /* ===== Export CSV (editor) ===== */
   document.getElementById("exportBtn").addEventListener("click", () => {
     const cols = [
       "hole","date","lie","dist_yd",
@@ -1145,7 +1404,7 @@ addAutoRepeat(lineRightP1, ()=>{
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
-  // NEW: New Session button
+  // New Session button
   document.getElementById('newSessionBtn').addEventListener('click', ()=>{
     if (!confirm('Would you like to start a new session? Current session will be lost unless saved.')) return;
     saved = [];
@@ -1159,6 +1418,11 @@ addAutoRepeat(lineRightP1, ()=>{
     document.getElementById('toggleChartBtn').textContent = 'Show Dispersion Chart';
     updateSessionHeader();
     window.scrollTo({ top:0, behavior:'smooth' });
+  });
+
+  // NEW: Finish Session button triggers save session
+  document.getElementById('finishSessionBtn').addEventListener('click', ()=>{
+    document.getElementById('saveSessionBtn').click();
   });
 
   document.getElementById('resetFiltersBtn').addEventListener('click', ()=>{
@@ -1180,12 +1444,12 @@ addAutoRepeat(lineRightP1, ()=>{
     }
   });
 
-  // NEW: wire color-mode toggle (Lie / Distance)
+  // color-mode toggle (Lie / Distance)
   document.querySelectorAll('#colorModeSeg button').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       document.querySelectorAll('#colorModeSeg button').forEach(x=>x.classList.remove('active'));
       btn.classList.add('active');
-      colorMode = btn.dataset.mode;   // 'lie' or 'distance'
+      colorMode = btn.dataset.mode;
       renderFilterRow();
       renderChart();
     });
@@ -1259,6 +1523,7 @@ addAutoRepeat(lineRightP1, ()=>{
       const x = cx + t*scale, y = cy - t*scale;
       ctx.strokeStyle='#2a3138';
       ctx.beginPath(); ctx.moveTo(x,cy-3); ctx.lineTo(x,cy+3); ctx.stroke();
+      ctx.beginPath(); ctx.MoveTo; // no-op fix to avoid accidental typo
       ctx.beginPath(); ctx.moveTo(cx-3,y); ctx.lineTo(cx+3,y); ctx.stroke();
       if (t!==0){ ctx.fillText(String(t), x-6, cy+14); ctx.fillText(String(t), cx+6, y+3); }
     }
@@ -1279,7 +1544,7 @@ addAutoRepeat(lineRightP1, ()=>{
     });
   }
 
-  // Save/Update Session -> IndexedDB
+  // Save/Update Session -> IndexedDB (no custom name)
   document.getElementById('saveSessionBtn').addEventListener('click', async ()=>{
     if (!saved.length){ alert('Nothing to save yet. Add at least one hole.'); return; }
     const isUpdate = !!workingSessionId;
@@ -1309,7 +1574,8 @@ addAutoRepeat(lineRightP1, ()=>{
           const r = sessions.put({ id, createdAt:new Date().toISOString(),
             dateStart:formatLocalISO(minDate),
             dateEnd:formatLocalISO(maxDate),
-            holes: saved.length });
+            holes: saved.length
+          });
           r.onsuccess=()=>res(); r.onerror=()=>rej(r.error);
         });
       } else {
@@ -1317,7 +1583,8 @@ addAutoRepeat(lineRightP1, ()=>{
           const r = sessions.add({ id, createdAt:new Date().toISOString(),
             dateStart:formatLocalISO(minDate),
             dateEnd:formatLocalISO(maxDate),
-            holes: saved.length });
+            holes: saved.length
+          });
           r.onsuccess=()=>res(); r.onerror=()=>rej(r.error);
         });
       }
@@ -1338,7 +1605,7 @@ addAutoRepeat(lineRightP1, ()=>{
   });
 
   // ===== Trends logic =====
-  let HOLES = [], SESSIONS = [], currentSession = '', chipLie = 'All';
+  let HOLES = [], SESSIONS = [], currentSession = '', chipLie = 'All', udLie = 'All';
 
   function chipBucket(dist){
     const d = Number(dist)||0;
@@ -1356,6 +1623,12 @@ addAutoRepeat(lineRightP1, ()=>{
     if (d<=30) return '21–30';
     return '30+';
   }
+  const arrowSigned = (m, axis)=>{
+    const thr = 0.25; // small noise threshold in feet
+    if (Math.abs(m) <= thr) return '•';
+    if (axis === 'depth') return m>0 ? '↑' : '↓'; // Long / Short
+    return m>0 ? '→' : '←'; // Right / Left
+  };
 
   async function initTrends(){
     try{
@@ -1423,11 +1696,16 @@ addAutoRepeat(lineRightP1, ()=>{
     const byB = {'10–25':[], '30–45':[], '50–65':[]};
     rows.forEach(r=> byB[chipBucket(r.dist)].push(r));
 
-    function avgMag(list){ if (!list.length) return 0; return list.reduce((s,r)=> s + Math.hypot(r.chipDepthSigned||0, r.chipLateralSigned||0), 0) / list.length; }
-    function signedMean(list, key){ if (!list.length) return 0; return list.reduce((s,r)=> s + (Number(r[key])||0), 0) / list.length; }
+    const avgMag = list => list.length ? list.reduce((s,r)=> s + Math.hypot(r.chipDepthSigned||0, r.chipLateralSigned||0), 0) / list.length : 0;
+    const signedMean = (list,key) => list.length ? list.reduce((s,r)=> s + (Number(r[key])||0), 0) / list.length : 0;
 
     document.getElementById('chipTotalShots').textContent = rows.length || '0';
     document.getElementById('chipAvgLeave').textContent = rows.length ? avgMag(rows).toFixed(1) : '–';
+
+    // direction arrows for chip KPI
+    const mdOverall = signedMean(rows,'chipDepthSigned');
+    const mlOverall = signedMean(rows,'chipLateralSigned');
+    document.getElementById('chipDir').textContent = rows.length ? `${arrowSigned(mdOverall,'depth')}${arrowSigned(mlOverall,'line')}` : '';
 
     chipRowsEl.innerHTML = '';
     ['10–25','30–45','50–65'].forEach(label=>{
@@ -1459,6 +1737,11 @@ addAutoRepeat(lineRightP1, ()=>{
       ? (rows.reduce((s,r)=> s + Math.hypot(r.p1DepthSigned||0, r.p1LateralSigned||0), 0)/rows.length).toFixed(2)
       : '–';
 
+    // NEW: direction arrows for putting KPI
+    const mdOverall = rows.length ? rows.reduce((s,r)=> s + (Number(r.p1DepthSigned)||0), 0)/rows.length : 0;
+    const mlOverall = rows.length ? rows.reduce((s,r)=> s + (Number(r.p1LateralSigned)||0), 0)/rows.length : 0;
+    document.getElementById('puttDir').textContent = rows.length ? `${arrowSigned(mdOverall,'depth')}${arrowSigned(mlOverall,'line')}` : '';
+
     puttRowsEl.innerHTML = '';
     Object.keys(byB).forEach(label=>{
       const list = byB[label], n = list.length;
@@ -1478,7 +1761,7 @@ addAutoRepeat(lineRightP1, ()=>{
   }
 
   function renderUD(){
-    const rows = filteredHoles();
+    const rows = filteredHoles().filter(r => udLie==='All' || r.lie === udLie);
     const attempts = rows.length;
     const wins = rows.filter(r=> Number(r.score)<=2).length;
     const rate = attempts ? (wins/attempts*100) : 0;
@@ -1509,21 +1792,30 @@ addAutoRepeat(lineRightP1, ()=>{
 
   function renderTrendsAll(){ renderChip(); renderPutt(); renderUD(); }
 
-  /* ===== Trends UI (incl. JSON/CSV import/export) ===== */
+  /* ===== Trends UI (incl. JSON/CSV export) ===== */
   function wireTrendsUI(){
-    document.querySelectorAll('#view-trends .tseg button').forEach(b=>{
+    // top section tabs
+    document.querySelectorAll('#view-trends .tseg[role="tablist"] button').forEach(b=>{
       b.onclick = ()=>{
-        document.querySelectorAll('#view-trends .tseg button').forEach(x=>x.classList.remove('active'));
+        document.querySelectorAll('#view-trends .tseg[role="tablist"] button').forEach(x=>x.classList.remove('active'));
         b.classList.add('active');
         ['chip','putt','ud'].forEach(t=>
           document.getElementById('tab-'+t).classList.toggle('hidden', b.dataset.tab !== t)
         );
       };
     });
+    // Chipping lie chips
     document.querySelectorAll('#lieChipsT .chip').forEach(c=>{
       c.onclick = ()=>{
         document.querySelectorAll('#lieChipsT .chip').forEach(x=>x.classList.remove('active'));
         c.classList.add('active'); chipLie = c.dataset.lie; renderChip();
+      };
+    });
+    // UD lie chips
+    document.querySelectorAll('#udLieChips .chip').forEach(c=>{
+      c.onclick = ()=>{
+        document.querySelectorAll('#udLieChips .chip').forEach(x=>x.classList.remove('active'));
+        c.classList.add('active'); udLie = c.dataset.lie; renderUD();
       };
     });
 
@@ -1546,84 +1838,8 @@ addAutoRepeat(lineRightP1, ()=>{
       });
       const csv = out.map(row => row.map(sanitizeCsvCell).join(",")).join("\n");
       const blob = new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8;"});
-      // keep the old anchor method here too
       downloadViaAnchor('par2_trends.csv', blob);
     };
-
-    document.getElementById('exportJSONTrends').onclick = async ()=>{
-      try{
-        const sessions = await idbAll('sessions').catch(()=>[]);
-        const holes    = await idbAll('holes').catch(()=>[]);
-        const backup = {
-          v: 1,
-          exportedAt: new Date().toISOString(),
-          editor: { date: dateInput.value || todayLocalISO(), hole: parseInt(holeInput.value||'1',10), rows: saved },
-          sessions, holes
-        };
-
-        // Filename: "Par2 MM-DD-YYYY.json"
-        const fname = `Par2 ${formatMMDDYYYY(todayLocalISO())}.json`;
-        const blob = new Blob([JSON.stringify(backup,null,2)], {type:'application/json'});
-        downloadJSONSmart(fname, blob);
-      }catch(e){
-        console.error(e); alert('Could not create backup JSON.');
-      }
-    };
-
-    document.getElementById('importJSONInput').addEventListener('change', async (e)=>{
-      const file = e.target.files && e.target.files[0];
-      e.target.value = '';
-      if (!file) return;
-      try{
-        const text = await file.text();
-        const data = JSON.parse(text);
-        const sessions = Array.isArray(data.sessions) ? data.sessions : [];
-        const holes = Array.isArray(data.holes) ? data.holes : [];
-        const editorRows = data.editor && Array.isArray(data.editor.rows) ? data.editor.rows : [];
-
-        const replace = confirm('Import mode:\nOK = Replace existing data\nCancel = Merge into current data');
-        if (replace){
-          await idbDeleteWholeDB();
-          await openPar2DB();
-        }
-
-        const existing = replace ? [] : await idbAll('sessions');
-        const existingIds = new Set(existing.map(s=>s.id));
-        const idMap = new Map();
-        const rand = () => Math.random().toString(36).slice(2,7);
-
-        const db = await openPar2DB();
-        const tx = db.transaction(['sessions','holes'], 'readwrite');
-        const stS = tx.objectStore('sessions');
-        const stH = tx.objectStore('holes');
-
-        for (const s of sessions){
-          let id = s.id || `s_${Date.now()}_${rand()}`;
-          if (!replace && existingIds.has(id)){ const nid = `s_${Date.now()}_${rand()}`; idMap.set(id,nid); id = nid; }
-          else { idMap.set(id,id); }
-          stS.put({ ...s, id });
-        }
-        for (const h of holes){
-          const {uid, ...rest} = h;
-          const sid = idMap.get(h.sessionId) || h.sessionId;
-          stH.add({ ...rest, sessionId:sid });
-        }
-
-        tx.oncomplete = ()=> db.close();
-
-        if (editorRows.length){ saved = editorRows; renderLog(); }
-
-        [SESSIONS, HOLES] = await Promise.all([idbAll('sessions'), idbAll('holes')]);
-        currentSession = '';
-        populateSessionPicker();
-        renderTrendsAll();
-
-        alert(`Imported ${sessions.length} session(s) and ${holes.length} hole(s).`);
-      }catch(err){
-        console.error(err);
-        alert('Import failed. Make sure this is a valid Par2 backup JSON.');
-      }
-    });
 
     document.getElementById('openInEditor').onclick = async ()=>{
       const id = document.getElementById('sessionPick').value;
@@ -1673,6 +1889,82 @@ addAutoRepeat(lineRightP1, ()=>{
     };
   }
 
+  // Reusable Export JSON (moved out of Trends header)
+  async function doExportJSONTrends(){
+    try{
+      const sessions = await idbAll('sessions').catch(()=>[]);
+      const holes    = await idbAll('holes').catch(()=>[]);
+      const backup = {
+        v: 1,
+        exportedAt: new Date().toISOString(),
+        editor: { date: dateInput.value || todayLocalISO(), hole: parseInt(holeInput.value||'1',10), rows: saved },
+        sessions, holes
+      };
+      const fname = `Par2 ${formatMMDDYYYY(todayLocalISO())}.json`;
+      const blob = new Blob([JSON.stringify(backup,null,2)], {type:'application/json'});
+      downloadJSONSmart(fname, blob);
+    }catch(e){
+      console.error(e); alert('Could not create export JSON.');
+    }
+  }
+
+  // Global Import JSON handler (was in Trends header before)
+  document.getElementById('importJSONInput').addEventListener('change', async (e)=>{
+    const file = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    try{
+      const text = await file.text();
+      const data = JSON.parse(text);
+      const sessions = Array.isArray(data.sessions) ? data.sessions : [];
+      const holes = Array.isArray(data.holes) ? data.holes : [];
+      const editorRows = data.editor && Array.isArray(data.editor.rows) ? data.editor.rows : [];
+
+      const replace = confirm('Import mode:\nOK = Replace existing data\nCancel = Merge into current data');
+      if (replace){
+        await idbDeleteWholeDB();
+        await openPar2DB();
+      }
+
+      const existing = replace ? [] : await idbAll('sessions');
+      const existingIds = new Set(existing.map(s=>s.id));
+      const idMap = new Map();
+      const rand = () => Math.random().toString(36).slice(2,7);
+
+      const db = await openPar2DB();
+      const tx = db.transaction(['sessions','holes'], 'readwrite');
+      const stS = tx.objectStore('sessions');
+      const stH = tx.objectStore('holes');
+
+      for (const s of sessions){
+        let id = s.id || `s_${Date.now()}_${rand()}`;
+        if (!replace && existingIds.has(id)){ const nid = `s_${Date.now()}_${rand()}`; idMap.set(id,nid); id = nid; }
+        else { idMap.set(id,id); }
+        const { name, ...rest } = s || {};
+        stS.put({ ...rest, id });
+      }
+      for (const h of holes){
+        const {uid, ...rest} = h;
+        const sid = idMap.get(h.sessionId) || h.sessionId;
+        stH.add({ ...rest, sessionId:sid });
+      }
+
+      tx.oncomplete = ()=> db.close();
+
+      if (editorRows.length){ saved = editorRows; renderLog(); }
+
+      [SESSIONS, HOLES] = await Promise.all([idbAll('sessions'), idbAll('holes')]);
+      currentSession = '';
+      populateSessionPicker();
+      renderTrendsAll();
+
+      alert(`Imported ${sessions.length} session(s) and ${holes.length} hole(s).`);
+    }catch(err){
+      console.error(err);
+      alert('Import failed. Make sure this is a valid Par2 export JSON.');
+    }
+  });
+
   // ===== Initial boot =====
   document.querySelectorAll("#lieChips .pill").forEach(x=>x.classList.remove("active"));
   document.getElementById("chipSection").classList.add("hidden");
@@ -1682,10 +1974,77 @@ addAutoRepeat(lineRightP1, ()=>{
   updateSessionHeader();
   showView('home'); // start at landing
 
-  // wire trends once when first opened
-  function wireTrendsUIOnce(){ if (!wireTrendsUI._wired){ wireTrendsUI(); wireTrendsUI._wired=true; } }
-  document.getElementById('goTrendsBtn').addEventListener('click', wireTrendsUIOnce, {once:true});
-  document.getElementById('homeTrendsBtn').addEventListener('click', wireTrendsUIOnce, {once:true});
+  // set © year on home
+  const yrEl = document.getElementById('yr'); if (yrEl) yrEl.textContent = new Date().getFullYear();
+
+  /* ===== Bottom nav wiring ===== */
+  function setActiveNav(which){
+    const map = { home:'home', editor:'editor', trends:'stats' };
+    const key = map[which] || which;
+    document.querySelectorAll('#appnav [data-nav]').forEach(b=>{
+      b.classList.toggle('active', b.dataset.nav === key);
+    });
+  }
+  const _origShowView = showView;
+  showView = function(which){
+    _origShowView(which);
+    setActiveNav(which);
+  };
+  setActiveNav('home');
+
+  document.getElementById('appnav').addEventListener('click', async (e)=>{
+    const btn = e.target.closest('button[data-nav]');
+    if(!btn) return;
+    const k = btn.dataset.nav;
+
+    if (k === 'home') {
+      showView('home');
+    } else if (k === 'editor') {
+      showView('editor');
+    } else if (k === 'stats') {
+      await initTrends().then(()=> showView('trends'));
+    } else if (k === 'new') {
+      document.getElementById('newSessionBtn').click();
+      showView('editor');
+    } else if (k === 'more') {
+      document.getElementById('moreSheet').classList.toggle('hidden');
+    }
+  });
+
+  (function wireMore(){
+    const sheet = document.getElementById('moreSheet');
+    const close = ()=> sheet.classList.add('hidden');
+
+    document.getElementById('msExportEditor').onclick = ()=>{
+      showView('editor');
+      setTimeout(()=> document.getElementById('exportBtn').click(), 0);
+      close();
+    };
+    document.getElementById('msExportAll').onclick = ()=>{
+      initTrends().then(()=>{
+        showView('trends');
+        setTimeout(()=> document.getElementById('exportAllCSV').click(), 0);
+        close();
+      });
+    };
+    document.getElementById('msExportJSON').onclick = ()=>{
+      doExportJSONTrends();
+      close();
+    };
+    document.getElementById('msImportJSON').onclick = ()=>{
+      document.getElementById('importJSONInput').click();
+      close();
+    };
+    document.getElementById('msClose').onclick = close;
+
+    // close on outside click / Esc
+    document.addEventListener('click', (ev)=>{
+      if (!sheet.classList.contains('hidden') &&
+          !ev.target.closest('#moreSheet') &&
+          !ev.target.closest('#appnav [data-nav="more"]')) close();
+    });
+    document.addEventListener('keydown', (ev)=>{ if(ev.key === 'Escape') close(); });
+  })();
 </script>
 </body>
 </html>
