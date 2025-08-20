@@ -157,11 +157,24 @@
 <style>
   #view-home{background:var(--bg);color:var(--text);min-height:100vh}
   #view-home .wrap{max-width:1100px;margin:0 auto;padding:16px}
-  #view-home header{
-    display:flex;align-items:center;justify-content:center;text-align:center;
-    padding:8px 0 16px;border-bottom:1px solid var(--border)
-  }
+#view-home header{
+  display:flex;
+  flex-direction:column;    /* stack title + subtitle vertically */
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  gap:4px;                  /* little breathing room */
+  padding:8px 0 16px;
+  border-bottom:1px solid var(--border);
+}
+
   #view-home .app-title{font-size:22px;margin:0;text-align:center}
+  #view-home .app-subtitle{
+  font-size:13px;
+  margin:4px 0 0;
+  color:var(--muted);
+  font-weight:600;
+}
 
   #view-home .card{
     background:var(--panel);border:1px solid var(--border);
@@ -333,7 +346,8 @@
   <div class="wrap">
     <header>
       <h1 class="app-title">⛳️ Par2 — Short Game Tracker</h1>
-    </header>
+        <p class="app-subtitle">Focused, smarter practice - tracked with sessions &amp; data.</p>
+</header>
 
     <main>
       <!-- Rules + Start Session -->
@@ -344,6 +358,7 @@
             <li>Start with a chip from a set distance and lie</li>
             <li>Track where you leave it, then putt out</li>
             <li>The app logs your score, distance control, and dispersion</li>
+            <li>Use Range finder or pace everything out (1 pace = 3')</li>
           </ul>
           <div class="btn-row">
             <button class="btn primary" id="startSessionBtn">Start Session</button>
@@ -641,7 +656,7 @@
 
   <div class="pickRow">
     <select id="sessionPick"><option value="">All sessions</option></select>
-    <button class="tbtn primary" id="openInEditor">Open in editor</button>
+    <button class="tbtn primary" id="openInEditor">Open Session</button>
     <button class="tbtn danger" id="deleteSessionBtn" style="display:none">Delete session</button>
     <span id="idbWarn" class="notice" style="display:none">IndexedDB unavailable.</span>
   </div>
@@ -655,6 +670,15 @@
 
     <!-- CHIPPING -->
     <section id="tab-chip">
+      <!-- Lie filter moved ABOVE KPIs -->
+      <div class="chips" id="lieChipsT" aria-label="Chipping Lie Filter" style="margin-top:12px;">
+        <span class="chip active" data-lie="All">All</span>
+        <span class="chip" data-lie="Fairway">Fairway</span>
+        <span class="chip" data-lie="Rough">Rough</span>
+        <span class="chip" data-lie="Sand">Sand</span>
+        <span class="chip" data-lie="Recovery">Recovery</span>
+      </div>
+
       <div class="kpis">
         <div class="kpi">
           <div class="big">
@@ -669,16 +693,9 @@
         </div>
       </div>
 
-      <div class="chips" id="lieChipsT">
-        <span class="chip active" data-lie="All">All</span>
-        <span class="chip" data-lie="Fairway">Fairway</span>
-        <span class="chip" data-lie="Rough">Rough</span>
-        <span class="chip" data-lie="Sand">Sand</span>
-        <span class="chip" data-lie="Recovery">Recovery</span>
-      </div>
-
       <section class="card">
         <table>
+
           <thead>
             <tr>
               <th>Dist to Pin (Yds)</th>
@@ -794,7 +811,7 @@
 <div id="moreSheet" class="sheet hidden" aria-hidden="true">
   <div class="card">
     <div class="row">
-      <button id="msExportEditor">Export CSV (Editor)</button>
+      <button id="msExportEditor">Export CSV (Session)</button>
       <button id="msExportAll">Export CSV (Stats)</button>
       <button id="msExportJSON">Export JSON</button>
       <button id="msImportJSON">Import JSON</button>
@@ -1544,66 +1561,78 @@
     });
   }
 
-  // Save/Update Session -> IndexedDB (no custom name)
-  document.getElementById('saveSessionBtn').addEventListener('click', async ()=>{
-    if (!saved.length){ alert('Nothing to save yet. Add at least one hole.'); return; }
-    const isUpdate = !!workingSessionId;
-    try{
-      const db = await openPar2DB();
-      const tx = db.transaction(['sessions','holes'], 'readwrite');
-      const sessions = tx.objectStore('sessions');
-      const holes = tx.objectStore('holes');
+// Save/Update Session -> IndexedDB (no custom name)
+document.getElementById('saveSessionBtn').addEventListener('click', async ()=>{
+  if (!saved.length){ alert('Nothing to save yet. Add at least one hole.'); return; }
+  const isUpdate = !!workingSessionId;
+  let id = workingSessionId || `s_${Date.now()}`;  // keep the id so we can open this exact session in Trends
 
-      const dateStrs = saved.map(r=> r.date || todayLocalISO());
-      const datesLocal = dateStrs.map(parseISOAsLocal);
-      const minDate = new Date(Math.min(...datesLocal.map(d=>d.getTime())));
-      const maxDate = new Date(Math.max(...datesLocal.map(d=>d.getTime())));
+  try{
+    const db = await openPar2DB();
+    const tx = db.transaction(['sessions','holes'], 'readwrite');
+    const sessions = tx.objectStore('sessions');
+    const holes = tx.objectStore('holes');
 
-      let id = workingSessionId || `s_${Date.now()}`;
-      if (isUpdate){
-        const idx = holes.index('by_session');
-        const q = IDBKeyRange.only(id);
-        await new Promise((resolve,reject)=>{
-          idx.openCursor(q).onsuccess = (e)=>{
-            const c = e.target.result;
-            if (c){ holes.delete(c.primaryKey); c.continue(); } else resolve();
-          };
-          tx.onerror = ()=> reject(tx.error);
-        });
-        await new Promise((res,rej)=>{
-          const r = sessions.put({ id, createdAt:new Date().toISOString(),
-            dateStart:formatLocalISO(minDate),
-            dateEnd:formatLocalISO(maxDate),
-            holes: saved.length
-          });
-          r.onsuccess=()=>res(); r.onerror=()=>rej(r.error);
-        });
-      } else {
-        await new Promise((res,rej)=>{
-          const r = sessions.add({ id, createdAt:new Date().toISOString(),
-            dateStart:formatLocalISO(minDate),
-            dateEnd:formatLocalISO(maxDate),
-            holes: saved.length
-          });
-          r.onsuccess=()=>res(); r.onerror=()=>rej(r.error);
-        });
-      }
-      for (const r of saved) await idbAdd(holes, { sessionId:id, ...r });
-      tx.oncomplete = ()=> db.close();
+    const dateStrs = saved.map(r=> r.date || todayLocalISO());
+    const datesLocal = dateStrs.map(parseISOAsLocal);
+    const minDate = new Date(Math.min(...datesLocal.map(d=>d.getTime())));
+    const maxDate = new Date(Math.max(...datesLocal.map(d=>d.getTime())));
 
-      saved = [];
-      renderLog();
-      holeInput.value = 1; updateSaveLabel();
-      clearUISelections();
-      workingSessionId = '';
-      updateSessionHeader();
-      alert(isUpdate ? 'Session updated.' : 'Session saved to Stats/Trends.');
-    }catch(err){
-      console.error(err);
-      alert('Could not save session (IndexedDB may be blocked).');
+    if (isUpdate){
+      const idx = holes.index('by_session');
+      const q = IDBKeyRange.only(id);
+      await new Promise((resolve,reject)=>{
+        idx.openCursor(q).onsuccess = (e)=>{
+          const c = e.target.result;
+          if (c){ holes.delete(c.primaryKey); c.continue(); } else resolve();
+        };
+        tx.onerror = ()=> reject(tx.error);
+      });
+      await new Promise((res,rej)=>{
+        const r = sessions.put({ id, createdAt:new Date().toISOString(),
+          dateStart:formatLocalISO(minDate),
+          dateEnd:formatLocalISO(maxDate),
+          holes: saved.length
+        });
+        r.onsuccess=()=>res(); r.onerror=()=>rej(r.error);
+      });
+    } else {
+      await new Promise((res,rej)=>{
+        const r = sessions.add({ id, createdAt:new Date().toISOString(),
+          dateStart:formatLocalISO(minDate),
+          dateEnd:formatLocalISO(maxDate),
+          holes: saved.length
+        });
+        r.onsuccess=()=>res(); r.onerror=()=>rej(r.error);
+      });
     }
-  });
+    for (const r of saved) await idbAdd(holes, { sessionId:id, ...r });
+    tx.oncomplete = ()=> db.close();
 
+    // reset editor UI
+    saved = [];
+    renderLog();
+    holeInput.value = 1; updateSaveLabel();
+    clearUISelections();
+    workingSessionId = '';
+    updateSessionHeader();
+
+    // notify, then jump to Stats with this session pre-selected
+    alert(isUpdate ? 'Session updated.' : 'Session saved to Stats/Trends.');
+    await initTrends();
+    currentSession = id;
+    const sel = document.getElementById('sessionPick');
+    if (sel){
+      sel.value = id;
+      document.getElementById('deleteSessionBtn').style.display = 'inline-flex';
+    }
+    renderTrendsAll();
+    showView('trends');
+  }catch(err){
+    console.error(err);
+    alert('Could not save session (IndexedDB may be blocked).');
+  }
+});
   // ===== Trends logic =====
   let HOLES = [], SESSIONS = [], currentSession = '', chipLie = 'All', udLie = 'All';
 
